@@ -11,3 +11,5 @@ bro this does a whole continumm removal and spits out a fits image?
 idk its a fits table as usual but it might as well also be an image idk
 tired
 
+notes:
+trying to see if I changed something
