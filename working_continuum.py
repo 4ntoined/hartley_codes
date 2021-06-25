@@ -6,106 +6,38 @@ import astropy.io.fits as fits
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 
-checking = False
 def findEmissions(wavey):
-    global h1,h2,c1,c2,checking
-    #toler = [3e-3,2.5e-3,2.3e-3,2e-3,1.56e-3,1.5e-3,1e-3,7e-4]
-    toler = np.logspace(-2.5,-3.5,130)
-    #for i in range(len(toler)):
-    i = 0
-    while len(np.argwhere(np.isclose(wavey,h1,rtol=toler[i]))) >= 1:
-        #oh boy so this will check how many indeces fit the bill
-        # its last run will be before the check returns no indices
-        h2oshort_i = np.argwhere(np.isclose(wavey,h1,rtol=toler[i]))
-        i+=1
-        if i == len(toler)-2:
-            break
-    if len(h2oshort_i) > 1:
-        print(f"choose from {len(h2oshort_i)} i's.")
-        h2oshort_i = int(h2oshort_i[1])
-    elif len(h2oshort_i) == 1:
-        h2oshort_i = int(h2oshort_i)
-    #
-    i=0
-    while len(np.argwhere(np.isclose(wavey,h2,rtol=toler[i]))) >= 1:
-        #oh boy so this will check how many indeces fit the bill
-        # its last run will be before the check returns no indices
-        h2olong_i = np.argwhere(np.isclose(wavey,h2,rtol=toler[i]))
-        i+=1
-        if i == len(toler)-2:
-            break
-    if len(h2olong_i) > 1:
-        print(f"choose from {len(h2olong_i)} i's.")
-        h2olong_i = int(h2olong_i[1])
-    elif len(h2olong_i) == 1:
-        h2olong_i = int(h2olong_i)
-    #
-    i = 0
-    while len(np.argwhere(np.isclose(wavey,c1,rtol=toler[i]))) >= 1:
-        #oh boy so this will check how many indeces fit the bill
-        # its last run will be before the check returns no indices
-        co2short_i = np.argwhere(np.isclose(wavey,c1,rtol=toler[i]))
-        i+=1
-        if i == len(toler)-2:
-            break
-    if len(co2short_i) > 1:
-        print(f"choose from {len(co2short_i)} i's.")
-        co2short_i = int(co2short_i[1])
-    elif len(co2short_i) == 1:
-        co2short_i = int(co2short_i)
-    #
-    i=0
-    while len(np.argwhere(np.isclose(wavey,c2,rtol=toler[i]))) >= 1:
-        #oh boy so this will check how many indeces fit the bill
-        # its last run will be before the check returns no indices
-        co2long_i = np.argwhere(np.isclose(wavey,c2,rtol=toler[i]))
-        i+=1
-        if i == len(toler)-2:
-            break
-    if len(co2long_i) > 1:
-        print(f"choose from {len(co2long_i)} i's.")
-        co2long_i = int(co2long_i[1])
-    elif len(co2long_i) == 1:
-        co2long_i = int(co2long_i)
-    #
-        
-        '''
-        if len(h2oshort_i) == 1: #recording index and breaking for loop
-            h2oshort_i = int(h2oshort_i)
-            print("got h2o short end")
-            break
-        if len(h2oshort_i) >= 2: #will run until 1 or fewer indicies left
-            h2oshort_i = int(h2oshort_i[1])
-    #
-    for i in range(len(toler)):
-        h2olong_i = np.argwhere(np.isclose(wavey,h2,rtol=toler[i]))
-        if len(h2olong_i) == 1: #recording index and breaking for loop
-            h2olong_i = int(h2olong_i)
-            print("got h2o long end")
-            break
-        if len(h2olong_i) >= 2: #when there are 2 left record them
-            h2olong_i = int(h2olong_i[1])
-    #
-    for i in range(len(toler)):
-        co2short_i = np.argwhere(np.isclose(wavey,c1,rtol=toler[i]))
-        if len(co2short_i) == 1: #recording index and breaking for loop
-            co2short_i = int(co2short_i)
-            print("got co2 short end")
-            break
-        if len(co2short_i) >= 2: #when there are 2 left record them
-            co2short_i = int(co2short_i[1])
-    #
-    for i in range(len(toler)):
-        co2long_i = np.argwhere(np.isclose(wavey,c2,rtol=toler[i]))
-        if len(co2long_i) == 1: #recording index and breaking for loop
-            co2long_i = int(co2long_i)
-            print("got co2 long end")
-            break
-        if len(co2long_i) >= 2: #when there are 2 left record them
-            co2long_i = int(co2long_i[1])
-    #
-    
-    '''
+    global h1,h2,c1,c2
+    #h2o
+    #short
+    h2oshort2 = int(np.argwhere(wavey>=h1)[0])                  #finds all indeces exceeding the target, grabs the shortest one
+    h2oshort1 = h2oshort2 - 1
+    if abs(wavey[h2oshort2] - h1) < abs(wavey[h2oshort1] - h1): #higher index is closer 
+        h2oshort_i = h2oshort2                                  #so take that one
+    else:                                                       #in the case of a tie, we go with the lower index
+        h2oshort_i = h2oshort1
+    #long
+    h2olong2 = int(np.argwhere(wavey>=h2)[0])                  #finds all indeces exceeding the target, grabs the longest one
+    h2olong1 = h2olong2 - 1
+    if abs(wavey[h2olong2] - h2) < abs(wavey[h2olong1] - h2): #higher index is closer 
+        h2olong_i = h2olong2                                  #so take that one
+    else:                                                       #in the case of a tie, we go with the lower index
+        h2olong_i = h2olong1
+    #co2
+    #short
+    co2short2 = int(np.argwhere(wavey>=c1)[0])                  #finds all indeces exceeding the target, grabs the shortest one
+    co2short1 = co2short2 - 1
+    if abs(wavey[co2short2] - c1) < abs(wavey[co2short1] - c1): #higher index is closer 
+        co2short_i = co2short2                                  #so take that one
+    else:                                                       #in the case of a tie, we go with the lower index
+        co2short_i = co2short1
+    #long
+    co2long2 = int(np.argwhere(wavey>=c2)[0])                  #finds all indeces exceeding the target, grabs the longest one
+    co2long1 = co2long2 - 1
+    if abs(wavey[co2long2] - c2) < abs(wavey[co2long1] - c2): #higher index is closer 
+        co2long_i = co2long2                                  #so take that one
+    else:                                                       #in the case of a tie, we go with the lower index
+        co2long_i = co2long1
     return [[h2oshort_i,h2olong_i],[co2short_i,co2long_i]]
 
 incube = fits.open("cubes/cube_smooth_spectra_310_v5.fit") #cube with smooth spectra
@@ -163,53 +95,19 @@ for xx in range(xsize): #for each pixel in the x
         outcube[1,yy,xx] = co2
 
 fitter = fits.PrimaryHDU(outcube)
-fitter.writeto("cubes/waterPlusMaps_prototype1.fit")
+#fitter.writeto("cubes/waterPlusMaps_prototype2.fit")
 
-'''
-#thinking we maybe should define a function that can progressively test smaller tolerances until only a single index is left
-h2oshort_index = np.argwhere(np.isclose(wavex,h1,rtol=1.5e-3))
-h2olong_index = np.argwhere(np.isclose(wavex,h2,rtol=1.5e-3))
-co2short_index = np.argwhere(np.isclose(wavex,c1,rtol=1.5e-3))
-co2long_index = np.argwhere(np.isclose(wavex,c2,rtol=1.5e-3))
-##print(h2oshort_index,h2olong_index,co2short_index,co2long_index)
-        '''
-'''
-##settling h2o
-h2oshort_avg = np.sum( spect[ int(h2oshort_index)-10:int(h2oshort_index)+1] ) / 11.
-h2olong_avg = np.sum( spect[ int(h2olong_index):int(h2olong_index)+9] ) / 9.
-##print(h2oshort_avg,h2olong_avg)
-wave_h = wavex[int(h2oshort_index):int(h2olong_index)+1]
-contin_h = interp1d([h1,h2],[h2oshort_avg,h2olong_avg],kind="linear")
-contin_hline = contin_h(wave_h)
-
-h2o = spect[int(h2oshort_index):int(h2olong_index)+1] - contin_hline
-print(h2o)
-
-##settling co2
-co2short_avg = np.sum( spect[ int(co2short_index)-14:int(co2short_index)+1] ) / 15.
-co2long_avg = np.sum( spect[ int(co2long_index):int(co2long_index)+8] ) / 8.
-wave_c = wavex[int(co2short_index):int(co2long_index)+1]
-contin_c = interp1d([c1,c2],[co2short_avg,co2long_avg],kind='linear',bounds_error=False,fill_value="extrapolate")
-contin_cline = contin_c(wave_c)
-co2 = spect[int(co2short_index):int(co2long_index)+1] - contin_cline
-print(co2)
-'''
-##print(np.linspace(h1,h2,int(h2olong_index)-int(h2oshort_index)+1),"\n\n",wavex[int(h2oshort_index):int(h2olong_index)+1])
 ##plotting
-fig,ax = plt.subplots()
-fig.dpi=120
-fig.figsize=(9,6)
+fig, (ax1,ax2) = plt.subplots(nrows=2, ncols=1, sharex=True)
+#fig.dpi=120
+#fig.figsize=(9,6)
 #
-ax.plot(wavex,spect,color="blue")
-ax.plot(wave_h,contin_hline)
-ax.plot(wave_h,h2oline)
-ax.plot(wave_c,contin_cline)
-ax.plot(wave_c,co2)
-ax.vlines((h1,h2,c1,c2),ymin=-0.001,ymax=0.0012,color='pink')
+ax1.imshow(fitter.data[0,:,:],vmin=0,vmax=9e-5)
+ax2.imshow(fitter.data[1,:,:],vmin=0,vmax=9e-5)
 #
-#ax.set_xlim((2.,4.4))
-ax.set_ylim((-.0006,.001))
-ax.set_ylabel("data value")
-ax.set_xlabel("wavelength, microns")
-ax.set_title("spectrum")
-ax.grid("both")
+ax1.set_title("h2o map")
+ax2.set_title("co2 map")
+fig.colorbar(ax1.imshow(fitter.data[0,:,:],vmin=0,vmax=9e-5),ax=[ax1,ax2],location="bottom")
+#ax.set_ylabel("")
+#ax.set_xlabel("")
+#ax.grid("both")
