@@ -4,12 +4,11 @@ import os
 import numpy as np
 import astropy.io.fits as fits
 
-def getIt(path):
-    #this function will get the interesting info from a fits given its path
-    return
+def sorter(filename):
+    return filename[19:22]
 
 #directoryInQuestion = "."
-directoryInQuestion = input("directory with the data: ")
+directoryInQuestion = input("directory with the data: ") or "/chiron5/Sandbox/holt/Hartley2/ir/raw"
 #getting all the directories and subdirectories
 allOfIt = []
 for paths, dirs, fils in os.walk(directoryInQuestion):
@@ -22,40 +21,61 @@ for i in range(len(a[:,0])):
         b.append(a[i,:])
 b = np.array(b,dtype=object)
 #keeping just the fits files
-out=open("vegeta.txt","w")
-out.write("name // mid-observation time // exposure id // date // optical-bench temp // exposure time,probably in milliseconds\n")
-c = []
+for i in range(len(b[:,0])):    #through all the scan subdirectories
+    files = b[i,2]              #look at the files therein
+    c=[]
+    for j in files:             #iterate through files
+        if j[22:26] == ".fit":  #when there's a .fit
+            c.append(j)         #save it to c
+        else:
+            pass
+    b[i,2] = c                  #replace files list with just .fit filenames
+#b should have all the .fits from all the scans
+out=open("piccolo.txt","w")
+out.write("name // mid-observation time // exposure id // date // \
+            optical-bench temp // exposure time,probably in milliseconds\n")
+#d=[]
+seven = []
+eight = []
+twelve = []
 for i in range(len(b[:,0])):
     files = b[i,2]
-    for j in files:
-        if j[22:26] == ".fit":
-            lastframe = fits.open(os.path.join(b[i,0],j))
-            name = j
-            obstime = lastframe[0].header["OBSMIDJD"]
-            obsdate = lastframe[0].header["OBSDATE"]
-            temp = lastframe[0].header["OPTBENT"]
-            exposuretime = lastframe[0].header["INTTIME"]
-            exposureid = lastframe[0].header["EXPID"]
-            data = lastframe[0].data
-            if data.shape == (256,512):
-                data = np.array(data)
-                c.append(data)
-                string = f"{name} {obstime} {exposureid} {obsdate} {temp} {exposuretime}"
-                out.write(string+"\n")
+    if len(files) >= 1: #will exclude scans with no fits files (they return an empty list and break they code)
+        files.sort(key=sorter)
+        lastframe = fits.open(os.path.join(b[i,0],files[-1]))
+        name = files[-1]
+        obstime = lastframe[0].header["OBSMIDJD"]
+        obsdate = lastframe[0].header["OBSDATE"]
+        temp = lastframe[0].header["OPTBENT"]
+        exposuretime = lastframe[0].header["INTTIME"]
+        #exposureid = lastframe[0].header["EXPID"]
+        exposureid = b[i,0].split("/")[-1]
+        sting = f"{name} {obstime} {exposureid} {obsdate} {temp} {exposuretime}"
+        out.write(sting+"\n")
+        data = lastframe[0].data
+        if data.shape == (256,512):
+            if abs(exposuretime - 7000.33) < 0.4:
+                seven.append(data)
+            elif abs(exposuretime - 8000.33) < 0.4:
+                eight.append(data)
+            elif abs(exposuretime - 12000.33) < 0.4:
+                twelve.append(data)
             else:
-                print("bad shape")
-            lastframe.close()
-        else:
-            #print("what was that!? woah..")
-            pass
-        break #just first file
+                print(f"exptime {exposuretime} ms was not caught in {b[i,0]}")
+    else:
+        print(f"directory {b[i,0]} had no .fit files")
     if i%40 == 0:
-        print(f"sorted through {i} scans")
+        print(f"examined {i} scans")
 out.close()
-c = np.array(c,dtype=float)
-print(c.shape)
-fitte = fits.PrimaryHDU(c)
-fitte.writeto("collage_v2.fit")
+seven = np.array(seven,dtype=float)
+eight = np.array(eight,dtype=float)
+twelve = np.array(twelve,dtype=float)
+fit7 = fits.PrimaryHDU(seven)
+fit8 = fits.PrimaryHDU(eight)
+fit12 = fits.PrimaryHDU(twelve)
+fit7.writeto("sevensies.fit")
+fit8.writeto("eightsies.fit")
+fit12.writeto("twelvesies.fit")
 print("okay done for now")
 
 """
