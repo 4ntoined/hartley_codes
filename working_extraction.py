@@ -10,14 +10,51 @@ def getIt(path):
 
 #directoryInQuestion = "."
 directoryInQuestion = input("directory with the data: ")
-ps = []
-ds = []
-fs = []
+#getting all the directories and subdirectories
+allOfIt = []
 for paths, dirs, fils in os.walk(directoryInQuestion):
-    ps.append(paths)
-    ds.extend(dirs)
-    fs.extend(fils)
-    break               #only iterates through the top directory, otherwise we'd get all the subdirectories as well
+    allOfIt.append([paths,dirs,fils])
+a = np.array(allOfIt,dtype=object)
+b = []
+#getting just the exposure subdirectories
+for i in range(len(a[:,0])):
+    if len(a[i,0]) >= 49:   #should (SHOULD) pick out the directories that are scan directories not doy directories
+        b.append(a[i,:])
+b = np.array(b,dtype=object)
+#keeping just the fits files
+out=open("vegeta.txt","w")
+out.write("name // mid-observation time // exposure id // date // optical-bench temp // exposure time,probably in milliseconds\n")
+c = np.ones((1,256,512),dtype=float)
+for i in range(len(b[:,0])):
+    files = b[i,2]
+    for j in files:
+        if j[22:26] == ".fit":
+            lastframe = fits.open(os.path.join(b[i,0],j))
+            name = j
+            obstime = lastframe[0].header["OBSMIDJD"]
+            obsdate = lastframe[0].header["OBSDATE"]
+            temp = lastframe[0].header["OPTBENT"]
+            exposuretime = lastframe[0].header["INTTIME"]
+            exposureid = lastframe[0].header["EXPID"]
+            data = lastframe[0].data
+            data = np.array(data).reshape((1,256,512))
+            np.append(c,data,axis=0)
+           # lastframe.info()
+            string = f"{name} {obstime} {exposureid} {obsdate} {temp} {exposuretime}"
+            out.write(string+"\n")
+            lastframe.close()
+        else:
+            #print("what was that!? woah..")
+            pass
+    if i%40 == 0:
+        print(f"sorted through {i} scans")
+        print(c[-1])
+out.close()
+fitter = fits.PrimaryHDU(c)
+fitter.writeto("one_from_every_scan.fit")
+print("okay done for now")
+
+"""
 #ps holds the path of the top directory
 #ds is the name of every subdirectory in the top (doy)
 #fs is the name of every file (no files) in top
@@ -52,3 +89,4 @@ for i in range(len(b[:,0])):    #each exposure/scan
     fi.close()
 
 out.close()
+"""
