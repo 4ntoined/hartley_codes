@@ -24,7 +24,7 @@ b = np.array(b,dtype=object)
 #keeping just the fits files
 out=open("vegeta.txt","w")
 out.write("name // mid-observation time // exposure id // date // optical-bench temp // exposure time,probably in milliseconds\n")
-c = np.ones((1,256,512),dtype=float)
+c = []
 for i in range(len(b[:,0])):
     files = b[i,2]
     for j in files:
@@ -37,21 +37,25 @@ for i in range(len(b[:,0])):
             exposuretime = lastframe[0].header["INTTIME"]
             exposureid = lastframe[0].header["EXPID"]
             data = lastframe[0].data
-            data = np.array(data).reshape((1,256,512))
-            np.append(c,data,axis=0)
-           # lastframe.info()
-            string = f"{name} {obstime} {exposureid} {obsdate} {temp} {exposuretime}"
-            out.write(string+"\n")
+            if data.shape == (256,512):
+                data = np.array(data)
+                c.append(data)
+                string = f"{name} {obstime} {exposureid} {obsdate} {temp} {exposuretime}"
+                out.write(string+"\n")
+            else:
+                print("bad shape")
             lastframe.close()
         else:
             #print("what was that!? woah..")
             pass
+        break #just first file
     if i%40 == 0:
         print(f"sorted through {i} scans")
-        print(c[-1])
 out.close()
-fitter = fits.PrimaryHDU(c)
-fitter.writeto("one_from_every_scan.fit")
+c = np.array(c,dtype=float)
+print(c.shape)
+fitte = fits.PrimaryHDU(c)
+fitte.writeto("collage_v2.fit")
 print("okay done for now")
 
 """
