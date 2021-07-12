@@ -73,6 +73,7 @@ out=open("dark_temp.dat","w")
 out.write("julian date, mid-obs // temperature, K (smooth) // dark level // exposure time // doy // exposure id \n")
 #lets go sevens?
 counting_weirds = 0
+not_weirds = []
 for i in range(len(p1_x)):
     out.write(f"{p1_t[i]} {p1_x[i]} {p1_y[i]} 7000.33 {doy7[i]} {exp7[i]}")
     if fitline(p1_x[i]) > p1_y[i]:
@@ -81,6 +82,7 @@ for i in range(len(p1_x)):
         print(f"{doy7[i]}:{exp7[i]} : {i} : {p1_x[i]}\n")
     else:
         out.write("\n")
+        not_weirds.append((p1_t[i],p1_x[i],p1_y[i]))
 for i in range(len(p2_x)):
     out.write(f"{p2_t[i]} {p2_x[i]} {p2_y[i]} 8000.33 {doy8[i]} {exp8[i]}")
     if fitline(p2_x[i]) > p2_y[i]:
@@ -89,7 +91,7 @@ for i in range(len(p2_x)):
         print(f"{doy8[i]}:{exp8[i]} : {i} : {p2_x[i]}\n")
     else:
         out.write("\n")
-        
+        not_weirds.append((p2_t[i],p2_x[i],p2_y[i]))
 for i in range(len(p3_x)):
     out.write(f"{p3_t[i]} {p3_x[i]} {p3_y[i]} 12000.33 {doy12[i]} {exp12[i]}")
     if fitline(p3_x[i]) > p3_y[i]:
@@ -98,8 +100,18 @@ for i in range(len(p3_x)):
         print(f"{doy12[i]}:{exp12[i]} : {i} : {p3_x[i]}\n")
     else:
         out.write("\n")
+        not_weirds.append((p3_t[i],p3_x[i],p3_y[i]))
 out.close()
 print(counting_weirds)
+print(len(not_weirds))
+# unloading the retained data points
+p4_x = [float(i[1]) for i in not_weirds]
+p4_y = [float(i[2]) for i in not_weirds]
+# line of fit
+fitagain = poly.Polynomial.fit(p4_x,p4_y,deg=1)
+b4, m4 = fitagain.convert().coef
+fit_x = np.linspace(136.667,137.2,500)
+fit_y = b4 + fit_x*m4
 
 
 """
@@ -123,19 +135,23 @@ plt.show()
 fig,ax = plt.subplots()
 fig.dpi=120
 fig.figsize=(10,6)
-#ax.scatter(pot[:,0],pot[:,2],color="blue",s=1,label="7s")
-ax.scatter(p1_x,p1_y,color="blue",s=1,label="7s")
+#ax.scatter(p1_x,p1_y,color="blue",s=1,label="7s")
 #plt.show()
-ax.scatter(p2_x,p2_y,color="red",s=1,label="8s")
+#ax.scatter(p2_x,p2_y,color="red",s=1,label="8s")
 #plt.show()
-ax.scatter(p3_x,p3_y,color="green",s=1,label="12s")
-ax.plot(fit_x,fit_y,color="lightblue",label="fit thru 7")
-ax.plot(fit2_x,fit2_y,color="pink",label="fit thru 8")
+#ax.scatter(p3_x,p3_y,color="green",s=1,label="12s")
+ax.scatter(p4_x,p4_y,color="royalblue",s=1,label="all the cool ones")
+#ax.scatter( (136.9163578069979),(0.5875101089477539 ),color="black",s=6,label="310.4100011")
+#ax.scatter( (136.84565635327576),(0.5875728726387024 ),color="orange",s=6,label="310.4100009")
+#ax.scatter( (136.8459080135857 ),(0.5874354839324951 ),color="darkred",s=6,label="310.4100013")
+ax.plot(fit_x,fit_y,color="limegreen",label=f"fit, b= {b4}, m= {m4}")
+#ax.plot(fit2_x,fit2_y,color="pink")
+
 #
-ax.set_xlim(136.6,137.3)
-ax.set_ylim(0.57,0.62)
+#ax.set_xlim(136.6,137.2)
+#ax.set_ylim(0.57,0.62)
 ax.legend(loc="best")
-ax.set_title("dark vs temperature, linearized")
-ax.set_xlabel("temp, K (not smoothed)")
+ax.set_title("dark vs temperature")
+ax.set_xlabel("temp, K (smoothed)")
 ax.set_ylabel("last frame mean/exptime (data/millisecond)")
 plt.show()

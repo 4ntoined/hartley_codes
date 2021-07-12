@@ -141,7 +141,7 @@ ax.vlines(gaps_doy,ymin=136,ymax=138,lw=0.5,color='pink')
 #xlimits
 #ax.set_xlim((2455497,2455519))
 ax.set_xlim((297.5,321.5))
-ax.set_xlim((317.5,319))
+ax.set_xlim((309.5,311.5))
 #ylimits
 ax.set_ylim((136.2,137.8))
 #ax.set_ylim((136.7,136.9))
