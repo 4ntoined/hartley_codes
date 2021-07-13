@@ -17,7 +17,8 @@ def resistant_mean(data, cut):
 
     a = np.argwhere(np.isfinite(data))
     if len(a) != 0:
-        goodpts = data[np.argwhere(absdev <= cutoff)]
+        good_i = np.argwhere(absdev <= cutoff)
+        goodpts = np.array([ data[i[0],i[1]] for i in good_i])
         mean = np.nanmean(goodpts)
         num_good = goodpts.size
         sigma = np.sqrt(np.sum((goodpts - mean)**2)/num_good )
@@ -31,7 +32,8 @@ def resistant_mean(data, cut):
         #did it once now we do it again??? anyway
         cutoff = cut*sigma
 
-        goodpts = data[np.argwhere(absdev <= cutoff)]
+        good_i = np.argwhere(absdev <= cutoff)
+        goodpts = np.array([ data[i[0],i[1]] for i in good_i])
         mean = np.nanmean(goodpts)
         num_good = goodpts.size
         sigma = np.sqrt(np.sum((goodpts-mean)**2)/num_good)
