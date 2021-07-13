@@ -14,10 +14,9 @@ def resistant_mean(data, cut):
         medabsdev = np.nanmean(absdev)/0.8
     
     cutoff = cut*medabsdev
-    print(npts,ymed,absdev,medabsdev)
+
     a = np.argwhere(np.isfinite(data))
     if len(a) != 0:
-        #oh boy
         goodpts = data[np.argwhere(absdev <= cutoff)]
         mean = np.nanmean(goodpts)
         num_good = goodpts.size
@@ -49,6 +48,5 @@ def resistant_mean(data, cut):
         mean = np.nan
         sigma = np.nan
         num_rej = np.nan
-        print("ran the else")
     return mean, sigma, num_rej
 
