@@ -70,36 +70,36 @@ fitline = interp1d(fit2_x,fit2_y,kind='linear',bounds_error=False)     #interpol
 
 #file to associate each scan with a smooth temp and a dark level
 out=open("dark_temp.dat","w")
-out.write("julian date, mid-obs // temperature, K (smooth) // dark level // exposure time // doy // exposure id \n")
+out.write("julian date, mid-obs // temperature, K (smooth) // dark level // best fit level // exposure time // doy // exposure id // outlier flag\n")
 #lets go sevens?
 counting_weirds = 0
 not_weirds = []
 for i in range(len(p1_x)):
-    out.write(f"{p1_t[i]} {p1_x[i]} {p1_y[i]} 7000.33 {doy7[i]} {exp7[i]}")
+    out.write(f"{p1_t[i]} {p1_x[i]} {p1_y[i]} {fitline(p1_x[i])} 7000.33 {doy7[i]} {exp7[i]}")
     if fitline(p1_x[i]) > p1_y[i]:
         counting_weirds+=1
-        out.write(" high temp for dark level\n")
+        out.write(" 1\n")
         print(f"{doy7[i]}:{exp7[i]} : {i} : {p1_x[i]}\n")
     else:
-        out.write("\n")
+        out.write(" 0\n")
         not_weirds.append((p1_t[i],p1_x[i],p1_y[i]))
 for i in range(len(p2_x)):
-    out.write(f"{p2_t[i]} {p2_x[i]} {p2_y[i]} 8000.33 {doy8[i]} {exp8[i]}")
+    out.write(f"{p2_t[i]} {p2_x[i]} {p2_y[i]} {fitline(p2_x[i])} 8000.33 {doy8[i]} {exp8[i]}")
     if fitline(p2_x[i]) > p2_y[i]:
         counting_weirds+=1
-        out.write(" high temp for dark level\n")
+        out.write(" 1\n")
         print(f"{doy8[i]}:{exp8[i]} : {i} : {p2_x[i]}\n")
     else:
-        out.write("\n")
+        out.write(" 0\n")
         not_weirds.append((p2_t[i],p2_x[i],p2_y[i]))
 for i in range(len(p3_x)):
-    out.write(f"{p3_t[i]} {p3_x[i]} {p3_y[i]} 12000.33 {doy12[i]} {exp12[i]}")
+    out.write(f"{p3_t[i]} {p3_x[i]} {p3_y[i]} {fitline(p3_x[i])} 12000.33 {doy12[i]} {exp12[i]}")
     if fitline(p3_x[i]) > p3_y[i]:
         counting_weirds+=1
-        out.write(" high temp for dark level\n")
+        out.write(" 1\n")
         print(f"{doy12[i]}:{exp12[i]} : {i} : {p3_x[i]}\n")
     else:
-        out.write("\n")
+        out.write(" 0\n")
         not_weirds.append((p3_t[i],p3_x[i],p3_y[i]))
 out.close()
 print(counting_weirds)
