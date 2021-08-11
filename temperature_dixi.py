@@ -21,6 +21,10 @@ def doy_to_stringdate(doy):
             break
     dd = doy - thirtyfirsts[mm-1]
     return str(np.floor(dd)) +"-"+ months_string[mm]
+def jd_sorter(timeline_candidate):
+    #dig into each 3-point (time, smooth temp, not smooth temp)
+    # and return julian date
+    return timeline_candidate[0]
 
 ###marking the days of the year where the month turns over###
 daysmonths = [31,28,31,30,31,30,31,31,30,31,30,31]
@@ -44,6 +48,37 @@ temp1[:,1]-=0.9
 
 ###extra data thanks to calibrated file temps
 timess,tem,smotem,expid = np.loadtxt("gap_temps.dat",skiprows=1,unpack=True)
+###more extra data thanks to me
+full = np.loadtxt("dark_temp.dat",skiprows=1,dtype=object)
+timing = full[:,0].astype(float)
+temp3 = full[:,1].astype(float)
+hotflag = full[:,7].astype(int)
+print(hotflag)
+hottimes = timing[np.argwhere(hotflag)]
+hotpoints = temp3[np.argwhere(hotflag)]
+
+## collecting the timeline
+## need to be able to combine the hri telemetry dataset with the
+## data from the calibrated file headers into one set
+## and also maybe have that all sorted by time
+## so im thinking:
+temptimeline = []
+for i in range(len(temp1[:,0])):    #will collect all the hri telemetyr data
+    temptimeline.append((temp1[i,0],temp1[i,1],np.nan))
+## keeping it simple, I think gonna take jd and smooth temp
+for i in range(len(timess)):
+    temptimeline.append((timess[i],smotem[i],tem[i]))
+## all the sauce should be here, now we need to sort
+temptimeline.sort(key=jd_sorter)
+# okay that should be all the sorting
+print(len(temptimeline))
+###confirming manual adjustment of temperature###
+#for i in range(len(temptimeline[17500:18500])):
+#    print(temptimeline[i+17500],i+17500)
+##################################################
+ttimeline = np.array(temptimeline, dtype=float)
+## manual fixing of temperature outliers
+ttimeline[18444:18463,1] = 136.755
 
 #gonna interpolate these once smoothed temperatures with julian date
 tlin = interp1d(temp1[:,0],temp1[:,1],kind='linear')
@@ -64,8 +99,6 @@ for i in scan_file:
         expos.append(expo)
     #print("working..")
 scan_file.close()
-
-
 scan_times = np.array(scan_timeline)
 #print(scan_times.shape)
 #print(scan_times)
@@ -102,15 +135,15 @@ for i in range(len(temp1[:,0])):
     diff = temp1[i,0] - store
     store = temp1[i,0]
     if diff > 0.0139:
-        print(diff, end='')
-        print(f" :: {temp1[i,0]} :: {i}")
+        #print(diff, end='')
+        #print(f" :: {temp1[i,0]} :: {i}")
         fout3.write(f"{diff} {temp1[i,0]}\n")
         gaps.append(temp1[i,0])
         gap_index.append(i)
     fout2.write(f"{diff} {temp1[i,0]}\n")
 fout2.close()
 fout3.close()
-print(gap_index)
+#print(gap_index)
 
 gaps_doy = []
 for i in gaps:
@@ -121,13 +154,16 @@ fig, ax = plt.subplots()
 fig.figsize=(8,6)
 fig.dpi=120
 
-for i in range(1,len(gap_index)):
-    ax.plot(x_temp[gap_index[i-1]:gap_index[i]],temp1[gap_index[i-1]:gap_index[i],1],color='darkorange',lw=.3)
+#for i in range(1,len(gap_index)):
+#    ax.plot(x_temp[gap_index[i-1]:gap_index[i]],temp1[gap_index[i-1]:gap_index[i],1],color='darkorange',lw=.3)
     #ax.scatter(scan_times_doy[gap_index[i-1]:gap_index[i]],y_lin[gap_index[i-1]:gap_index[i]],color='red',s=1.)
-##ax.plot(x_temp,temp2,label="extra smooth temp",color='red',lw=.3,zorder=2)
+#ax.plot(temp1[:,0],temp1[:,1],label="reg. timeline",color="orange",lw=.6)
+ax.plot(ttimeline[:,0],ttimeline[:,1],label="plus timeline",color='red',lw=.6,zorder=1)
 #ax.plot(timess_doy,tem,label="optbent")
-ax.scatter(timess_doy,smotem, label="smobent",s=1,zorder=5,color='purple')
-ax.scatter(timess_doy,tem, label="temp",s=1,zorder=4,color='red')
+#ax.scatter(timess,smotem, label="gaps",s=1,zorder=5,color='purple')
+ax.scatter(timing,temp3, label="all scans",s=1,zorder=5,color='blue')
+#ax.scatter(hottimes, hotpoints, label="hot points", color='green',s=1,zorder=8)
+#ax.scatter(timess,tem, label="temp",s=1,zorder=4,color='red')
 #ax.scatter( scan_times_doy, q_lin, label = "scans on smobent",s=3,color='red', zorder =6)
 
 #ax.scatter(scan_times_doy,y_cub,label="scans, cubic interp",color='blue',s=.8,zorder=4)
@@ -137,18 +173,20 @@ ax.scatter(timess_doy,tem, label="temp",s=1,zorder=4,color='red')
 #ax.set_yscale("log")
 #ticks and lines
 #ax.set_xticks(x_temp)
-ax.vlines(gaps_doy,ymin=136,ymax=138,lw=0.5,color='pink')
+#ax.vlines(gaps_doy,ymin=136,ymax=138,lw=0.5,color='pink')
+#ax.vlines((318.21,318.248,318.301,318.33),ymin=136,ymax=138,lw=0.6,color='darkgreen')
 #xlimits
-#ax.set_xlim((2455497,2455519))
-ax.set_xlim((297.5,321.5))
-ax.set_xlim((309.5,311.5))
+ax.set_xlim((2455494,2455519))
+ax.set_xlim((2455512,2455514.5))
+#ax.set_xlim((297.5,321.5))
+#ax.set_xlim((315.5,320))
 #ylimits
-ax.set_ylim((136.2,137.8))
-#ax.set_ylim((136.7,136.9))
+ax.set_ylim((136.6,137.3))
+#ax.set_ylim((136.7,136.83))
 ####################
 #text related things
 ax.legend(loc='best')
-ax.set_xlabel("day of year 2010")
+ax.set_xlabel("julian date")
 ax.set_ylabel("temp K")
 #ax.grid(which="both")
 ax.set_title("temp over time")
