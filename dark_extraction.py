@@ -31,86 +31,80 @@ for i in range(len(b[:,0])):    #through all the scan subdirectories
             pass
     b[i,2] = c                  #replace files list with just .fit filenames
 #b should have all the .fits from all the scans
-out=open("piccolo.txt","w")
-out.write("name // mid-observation time // exposure id // date // \
-            optical-bench temp // exposure time,probably in milliseconds\n")
-#d=[]
+out=open("gokussj4.txt","w")
+file7 = open("seven.dat","w")   #will record same data as out for each one of the exposures
+file8 = open("eight.dat","w")
+file12 = open("twleve.dat","w")
+out.write("name // mid-observation time // exposure id // DOY // date // \
+optical-bench temp // exposure time,probably in milliseconds\n")
+file7.write("name // mid-observation time // exposure id // DOY // date // \
+optical-bench temp // exposure time,probably in milliseconds\n")
+file8.write("name // mid-observation time // exposure id // DOY // date // \
+optical-bench temp // exposure time,probably in milliseconds\n")
+file12.write("name // mid-observation time // exposure id // DOY // date // \
+optical-bench temp // exposure time,probably in milliseconds\n")
 seven = []
 eight = []
 twelve = []
 for i in range(len(b[:,0])):
     files = b[i,2]
-    if len(files) >= 1: #will exclude scans with no fits files (they return an empty list and break they code)
-        files.sort(key=sorter)
-        lastframe = fits.open(os.path.join(b[i,0],files[-1]))
-        name = files[-1]
+    if len(files) >= 1: #will exclude scans with no .fit files (they return an empty list and break they code)
+        files.sort(key=sorter)                                  #sorts the files in each directory based on number
+        lastframe = fits.open(os.path.join(b[i,0],files[-1]))   #grab the last file/frame
+        name = files[-1]                                        #unpack header info
         obstime = lastframe[0].header["OBSMIDJD"]
         obsdate = lastframe[0].header["OBSDATE"]
         temp = lastframe[0].header["OPTBENT"]
         exposuretime = lastframe[0].header["INTTIME"]
-        #exposureid = lastframe[0].header["EXPID"]
+        #exposureid = lastframe[0].header["EXPID"]              #epxosure id in header doesn't include underscores
         exposureid = b[i,0].split("/")[-1]
-        sting = f"{name} {obstime} {exposureid} {obsdate} {temp} {exposuretime}"
-        out.write(sting+"\n")
+        doy = b[i,0].split("/")[-2]
+        sting = f"{name} {obstime} {exposureid} {doy} {obsdate} {temp} {exposuretime}\n"
+        out.write(sting)                                   #write the data to a file
         data = lastframe[0].data
-        if data.shape == (256,512):
-            if abs(exposuretime - 7000.33) < 0.4:
-                seven.append(data)
-            elif abs(exposuretime - 8000.33) < 0.4:
-                eight.append(data)
-            elif abs(exposuretime - 12000.33) < 0.4:
-                twelve.append(data)
+        if data.shape == (256,512):                             #exludes 2 frames from 2 scans
+            if (name[19:22] == "011") or (name[19:22] == "036"):
+                print(f"don't think frame {name[19:22]} was the last frame in {b[i,0]}")
             else:
-                print(f"exptime {exposuretime} ms was not caught in {b[i,0]}")
+                if abs(exposuretime - 7000.33) < 0.4:
+                    seven.append(data)
+                    file7.write(sting)
+                elif abs(exposuretime - 8000.33) < 0.4:
+                    eight.append(data)
+                    file8.write(sting)
+                elif abs(exposuretime - 12000.33) < 0.4:
+                    twelve.append(data)
+                    file12.write(sting)
+                else:
+                    print(f"exptime {exposuretime} ms was not caught in {b[i,0]}")
     else:
         print(f"directory {b[i,0]} had no .fit files")
     if i%40 == 0:
         print(f"examined {i} scans")
 out.close()
+file7.close()
+file8.close()
+file12.close()
 seven = np.array(seven,dtype=float)
 eight = np.array(eight,dtype=float)
 twelve = np.array(twelve,dtype=float)
-fit7 = fits.PrimaryHDU(seven)
-fit8 = fits.PrimaryHDU(eight)
-fit12 = fits.PrimaryHDU(twelve)
-fit7.writeto("sevensies.fit")
-fit8.writeto("eightsies.fit")
-fit12.writeto("twelvesies.fit")
+#gonna write up some headers for these fitses
+
+h7 = fits.Header()
+h8 = fits.Header()
+h12 = fits.Header()
+
+for i in ((h7,"7"),(h8,"8"),(h12,"12")):
+    i[0]["comment"] = f"collage of {i[1]}s exposure darks"
+    i[0]["axis1"] = "spectral-d"
+    i[0]["axis2"] = "scan-d"
+    i[0]["axis3"] = "frames"
+
+fit7 = fits.PrimaryHDU(seven,header=h7)
+fit8 = fits.PrimaryHDU(eight,header=h8)
+fit12 = fits.PrimaryHDU(twelve,header=h12)
+fit7.writeto("sevensies_v3.fit")
+fit8.writeto("eightsies_v3.fit")
+fit12.writeto("twelvesies_v3.fit")
 print("okay done for now")
 
-"""
-#ps holds the path of the top directory
-#ds is the name of every subdirectory in the top (doy)
-#fs is the name of every file (no files) in top
-a=[]
-c=[]
-for i in ds:                                                                #will iterate through all the doy directories
-    for paths, dirs, fils in os.walk(os.path.join(directoryInQuestion, i)): #will iterate through all subdirectories in doy (exposures)
-        a.append([i,dirs,paths])
-        break
-#each entry of a holds: (0) doy, (1) exposure ids/sub-doy directories, (2)path to doy directory
-a = np.array(a,dtype=object)
-b = []
-out = open("paths.txt","w")
-for i in range(len(a[:,2])):    #iterates through all doys
-    for j in a[i,1]:            #iterate through each day's scans
-        for paths,dirs,fils in os.walk(os.path.join(directoryInQuestion,a[i,2],j)):
-            b.append([a[i,2],j,fils,paths])
-            break
-#each entry holds: (0) path to doy directory (1) exposure id (2) files therein (3) path to exposure id directory
-b = np.array(b, dtype=object)
-c = []
-for i in range(len(b[:,0])):    #each exposure/scan
-    filez = b[i,2]
-    out.write(f"\n{b[i,3]} // {b[i,1]}\n")
-    for j in filez:             #go through all the files
-        out.write(f"{j}\n")
-        if j[22:26] == ".fit":  #to secure just the fits files
-            c.append(j)
-    lastone = c[-1]
-    fi = fits.open(os.path.join(b[i,3],lastone))
-    print(fi[0].header["INTTIME"])
-    fi.close()
-
-out.close()
-"""
