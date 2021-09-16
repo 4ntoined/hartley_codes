@@ -30,19 +30,21 @@ tabl[err2[:,0],err2[:,1]] = np.nan
 
 #getting those distance values to see what we can see
 dists = tabl[:,10]
+jd = tabl[:,0]
+flux = tabl[:,28]
 flux_dist = tabl[:,28] / (tabl[:,10]**2)
 print(flux_dist)
 ##
 fig,ax = plt.subplots()
-fig.figsize=(15,8)
-fig.dpi=100
+fig.figsize=(9,6)
+fig.dpi=140
 #
-ax.scatter(tabl[:,0],flux_dist,s=1)
+ax.scatter(jd,flux,s=1)
 #
-ax.set_xlim((2455495,2455520))
+ax.set_xlim((2455503.5,2455504.5))
 #ax.set_xlim((2455503,2455508))
 #ax.set_ylim((-1e-27,1e-25))
-ax.set_yscale("log")
+#ax.set_yscale("log")
 #
 ax.set_xlabel("julian date")
 ax.set_ylabel("flux per comet distance")
