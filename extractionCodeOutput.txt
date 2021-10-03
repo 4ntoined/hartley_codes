@@ -1,0 +1,72 @@
+30 june 2021--
+examined 0 scans
+examined 40 scans
+examined 80 scans
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/301/4000013_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/301/4000015_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/301/4000017_ had no .fit files
+don't think frame 036 was the last frame in /chiron5/Sandbox/holt/Hartley2/ir/raw/301/4000019
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/301/4000021_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/301/4000035_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/301/4000037_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/301/4000039_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/301/4000041_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/301/4000043_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/301/4000045_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/301/4000047_ had no .fit files
+examined 120 scans
+don't think frame 036 was the last frame in /chiron5/Sandbox/holt/Hartley2/ir/raw/302/4000019
+don't think frame 036 was the last frame in /chiron5/Sandbox/holt/Hartley2/ir/raw/303/4000019
+examined 160 scans
+don't think frame 036 was the last frame in /chiron5/Sandbox/holt/Hartley2/ir/raw/304/4000019
+examined 200 scans
+examined 240 scans
+exptime 5000.33 ms was not caught in /chiron5/Sandbox/holt/Hartley2/ir/raw/309/4002300
+exptime 5000.33 ms was not caught in /chiron5/Sandbox/holt/Hartley2/ir/raw/309/4002400
+exptime 5500.33 ms was not caught in /chiron5/Sandbox/holt/Hartley2/ir/raw/309/4002500
+exptime 5500.33 ms was not caught in /chiron5/Sandbox/holt/Hartley2/ir/raw/309/4002600
+exptime 6000.33 ms was not caught in /chiron5/Sandbox/holt/Hartley2/ir/raw/309/4002900
+exptime 6000.33 ms was not caught in /chiron5/Sandbox/holt/Hartley2/ir/raw/309/4003000
+examined 280 scans
+don't think frame 011 was the last frame in /chiron5/Sandbox/holt/Hartley2/ir/raw/309/4007300
+examined 320 scans
+examined 360 scans
+examined 400 scans
+examined 440 scans
+examined 480 scans
+examined 520 scans
+examined 560 scans
+examined 600 scans
+examined 640 scans
+examined 680 scans
+examined 720 scans
+examined 760 scans
+examined 800 scans
+examined 840 scans
+examined 880 scans
+examined 920 scans
+examined 960 scans
+examined 1000 scans
+examined 1040 scans
+examined 1080 scans
+examined 1120 scans
+examined 1160 scans
+examined 1200 scans
+examined 1240 scans
+examined 1280 scans
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/321/4100001_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/321/4100003_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/321/4100005_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/321/4100007_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/321/4100009_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/321/4100011_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/321/4200001_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/321/4200003_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/321/4200005_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/321/4200007_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/321/4200009_ had no .fit files
+examined 1320 scans
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/321/4200011_ had no .fit files
+directory /chiron5/Sandbox/holt/Hartley2/ir/raw/321/4300001_ had no .fit files
+okay done for now
+
