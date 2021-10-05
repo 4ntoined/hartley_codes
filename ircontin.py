@@ -7,6 +7,7 @@
 import numpy as np
 import astropy.io.fits as fits
 import matplotlib.pyplot as plt
+from playingwithdata import a
 
 def findIRcontinuum(wave_axis):
     global low,hig
@@ -35,6 +36,7 @@ def measure_light(direc, loc_nucleus, aperture_size):
     inwaves = fits.open(direc + "/cube_wave.fit")
     dat = incube[0].data
     waves = inwaves[0].data
+    #print(dat.shape)
     ysize = dat.shape[1] #frames in one (1) scan ~16,32,etc
     xsize = dat.shape[2] #pixels in one (1) frame ~256
     #settling where to look in the image
@@ -59,6 +61,7 @@ def measure_light(direc, loc_nucleus, aperture_size):
         ydy = [locy-ddy,locy+ddy]
     #take the data from the aperture
     dat_ap = dat[:,ydy[0]:ydy[1],xdx[0]:xdx[1]].copy()
+    print(dat_ap.shape)
     contin = [] #where we will store the continua extracted from the full spectra w/
                 #the findcontinuum function or whatever
     for xx in range(dat_ap.shape[2]):
@@ -71,11 +74,12 @@ def measure_light(direc, loc_nucleus, aperture_size):
         pass
     ### forcing all the spectra clips to the same length
     spectra_clip_lengths = [len(i) for i in contin]
+    print(spectra_clip_lengths)
     bestie = min(spectra_clip_lengths) #length of shortest clip
     continuum = [ contin[i][:bestie] for i in range(len(contin)) ] #replace each spectra truncated to the shortest clip
     #don't forget the wavelength array, will use one wave axis for the averaged spectral clip
-    a,b = findIRcontinuum(waves[:,ydy[0],xdx[0]])
-    waves_x = waves[a:a+bestie,ydy[0],xdx[0]]
+    d,b = findIRcontinuum(waves[:,ydy[0],xdx[0]])
+    waves_x = waves[d:d+bestie,ydy[0],xdx[0]]
     #now we have to.... average these spectra let's go
     continuum = np.array(continuum)
     #average all together
@@ -84,10 +88,20 @@ def measure_light(direc, loc_nucleus, aperture_size):
     print(f"integrated continuum from {direc}: ",light)
     return light
 
+#going to want to pull info/data from that new structured array? yes?
+
 #where's the continuum?
 low = 1.5
 hig = 2.5
 
+direcs = ['/chiron4/antojr/codespace/seq1','/chiron4/antojr/codespace/seq2','/chiron4/antojr/codespace/seq3', '/chiron4/antojr/codespace/seq4','/chiron4/antojr/codespace/seq5','/chiron4/antojr/codespace/seq6', '/chiron4/antojr/codespace/seq7','/chiron4/antojr/codespace/seq8','/chiron4/antojr/codespace/seq9','/chiron4/antojr/codespace/seq10','/chiron4/antojr/codespace/seq11','/chiron4/antojr/codespace/seq12','/chiron4/antojr/codespace/seq13','/chiron4/antojr/codespace/seq14','/chiron4/antojr/codespace/seq15']    #list of directories where the goods are
+locs = [ (a[i]['x-nucleus'],a[i]['y-nucleus'] ) for i in range(215,230)]
+aps = np.ones((15),dtype=int)*5
+
+#gonna run the function a bunch of times
+for i in range(len(direcs)):
+    print(measure_light(direcs[i],locs[i],aps[i]))
+    pass
 
 #outt = open("ir_light_307_b.txt","a")
 #outt.write(f"{light}\n")
