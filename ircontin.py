@@ -26,63 +26,72 @@ def findIRcontinuum(wave_axis):
         hig_i = hii_alt #otherwise use the lower index
     return [low_i,hig_i] #indeces of the continuum
 
+def measure_light(direc, loc_nucleus, aperture_size):
+    #direc, is the directory where we will find a smooth cubed with an accompanying wave cube
+    #loc_nucleus should be a 2-tuple (x,y) please
+    #aperture_size can be a positive integer or a 2-tuple
+    #getting the appropriate data
+    incube = fits.open(direc + "/cube_spectralsmooth.fit")
+    inwaves = fits.open(direc + "/cube_wave.fit")
+    dat = incube[0].data
+    waves = inwaves[0].data
+    ysize = dat.shape[1] #frames in one (1) scan ~16,32,etc
+    xsize = dat.shape[2] #pixels in one (1) frame ~256
+    #settling where to look in the image
+    locx, locy = loc_nucleus
+    locx = int(locx) - 1 #transition from ds9 [1-index] to python [0-index]
+    locy = int(locy) - 1
+    if type(aperture_size) == tuple:    #if aperture given as (x-long, y-long)
+        dx = int(aperture_size[0])
+        dy = int(aperture_size[1])
+    else:                               #otherwise shape is taken to be a square
+        dx = int(aperture_size)
+        dy = int(aperture_size)
+    ddx = dx // 2                       #integer division, with rounding down
+    ddy = dy // 2                       #
+    if dx%2 == 1:                       #number of pixels is odd
+        xdx = [locx-ddx,locx+ddx+1]     #so do this weird plus 1 to get the right number of pixels
+    else:
+        xdx = [locx-ddx,locx+ddx]
+    if dy%2 == 1:
+        ydy = [locy-ddy,locy+ddy+1]
+    else:
+        ydy = [locy-ddy,locy+ddy]
+    #take the data from the aperture
+    dat_ap = dat[:,ydy[0]:ydy[1],xdx[0]:xdx[1]].copy()
+    contin = [] #where we will store the continua extracted from the full spectra w/
+                #the findcontinuum function or whatever
+    for xx in range(dat_ap.shape[2]):
+        for yy in range(dat_ap.shape[1]):
+            spec = dat_ap[:,yy,xx]
+            wave = waves[:,yy,xx]
+            bounds = findIRcontinuum(wave)
+            contin.append(spec[bounds[0]:bounds[1]])
+            pass
+        pass
+    ### forcing all the spectra clips to the same length
+    spectra_clip_lengths = [len(i) for i in contin]
+    bestie = min(spectra_clip_lengths) #length of shortest clip
+    continuum = [ contin[i][:bestie] for i in range(len(contin)) ] #replace each spectra truncated to the shortest clip
+    #don't forget the wavelength array, will use one wave axis for the averaged spectral clip
+    a,b = findIRcontinuum(waves[:,ydy[0],xdx[0]])
+    waves_x = waves[a:a+bestie,ydy[0],xdx[0]]
+    #now we have to.... average these spectra let's go
+    continuum = np.array(continuum)
+    #average all together
+    ave = np.nanmean(continuum,axis=0)
+    light = np.trapz(ave,x=waves_x)
+    print(f"integrated continuum from {direc}: ",light)
+    return light
+
 #where's the continuum?
 low = 1.5
 hig = 2.5
 
-direc = input("directory: ")
-incube = fits.open(direc + "/cube_spectralsmooth.fit")
-inwaves = fits.open(direc + "/cube_wave.fit")
-#
-dat = incube[0].data
-waves = inwaves[0].data
-ysize = dat.shape[1] #frames in one (1) scan ~16,32,etc
-xsize = dat.shape[2] #pixels in one (1) frame ~256
 
-#what aperture to use?
-locat = input("[x y] of nucleus: ")
-locx, locy = locat.split()
-locx = int(locx) - 1 #transition from ds9 [1-index] to python [0-index]
-locy = int(locy) - 1
-dxdy = input("[dx dy] for aperture size: ") or "5 5"
-dx, dy = dxdy.split()
-dx = int(dx)
-dy = int(dy)
-xdx = [locx,locx+dx] #between 0 and xsize
-ydy = [locy,locy+dy] #b/w 0 and ysize
-
-dat_ap = dat[:,ydy[0]:ydy[1],xdx[0]:xdx[1]].copy()
-#print(dat_ap)
-#numpy does the work
-
-contin = [] #where we will store the continua extracted from the full spectra w/
-            #the findcontinuum function or whatever
-for xx in range(dat_ap.shape[2]):
-    #hey
-    for yy in range(dat_ap.shape[1]):
-        spec = dat_ap[:,yy,xx]
-        wave = waves[:,yy,xx]
-        bounds = findIRcontinuum(wave)
-        contin.append(spec[bounds[0]:bounds[1]])
-#making sure all spectra clips are the same length
-spectra_clip_lengths = [len(i) for i in contin]
-bestie = min(spectra_clip_lengths) #length of shortest clip
-continuum = [ contin[i][:bestie] for i in range(len(contin)) ] #replace each spectra truncated to the shortest clip
-#don't forget the wavelength array
-a,b = findIRcontinuum(waves[:,ydy[0],xdx[0]])
-waves_x = waves[a:a+bestie,ydy[0],xdx[0]]
-
-#now we have to.... average these spectra let's go
-continuum = np.array(continuum)
-print(continuum.shape)
-#average all together
-ave = np.nanmean(continuum,axis=0)
-light = np.trapz(ave,x=waves_x)
-print("integrated continuum: ",light)
-
-outt = open("ir_light_307_b.txt","a")
-outt.write(f"{light}\n")
-outt.close()
+#outt = open("ir_light_307_b.txt","a")
+#outt.write(f"{light}\n")
+#outt.close()
 
 #av_spec = np.nanmean(dat_ap,axis=(1,2))
 #print(dat_alt)
