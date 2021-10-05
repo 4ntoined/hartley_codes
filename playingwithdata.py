@@ -21,6 +21,7 @@ typex = np.dtype([('julian date','f8'),('DOY','i4'),('exposure id','U8'),('tempe
 dats = []
 for i in range(len(dark_tem)):
     dats.append(( dark_tem[i,0] , int(dark_tem[i,5]), dark_str[i], dark_tem[i,1], dark_tem[i,2], dark_tem[i,3] , -99., -99., dark_tem[i,4] , dark_tem[i,6], scan_str[i,0]))
+    pass
 a = np.array( dats, dtype = typex )
 # we will go through every row
 for i in range(len(coords_num)):
