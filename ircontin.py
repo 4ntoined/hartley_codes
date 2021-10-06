@@ -100,7 +100,15 @@ hig = 2.2
 
 direcs = ['/chiron4/antojr/codespace/seq1','/chiron4/antojr/codespace/seq2','/chiron4/antojr/codespace/seq3', '/chiron4/antojr/codespace/seq4','/chiron4/antojr/codespace/seq5','/chiron4/antojr/codespace/seq6', '/chiron4/antojr/codespace/seq7','/chiron4/antojr/codespace/seq8','/chiron4/antojr/codespace/seq9','/chiron4/antojr/codespace/seq10','/chiron4/antojr/codespace/seq11','/chiron4/antojr/codespace/seq12','/chiron4/antojr/codespace/seq13','/chiron4/antojr/codespace/seq14','/chiron4/antojr/codespace/seq15']    #list of directories where the goods are
 locs = [ (a[i]['x-nucleus'],a[i]['y-nucleus'] ) for i in range(215,230)]
-print(locs)
+locs[0] = (200,13)
+locs[3] = (200,13)
+locs[8] = (203,22)
+locs[13] = (204,14)
+locs[14] = (60,13)
+#print(locs)
+#locsA = [ (locs[i][0],38.-locs[i][1]) for i in range(13)] #manually fixing these locations
+#locsB = [ (locs[i][0],30.-locs[i][1]) for i in range(13,15)]
+#locs = locsA + locsB
 aps = np.ones((15),dtype=int)*5
 
 #gonna run the function a bunch of times
@@ -129,12 +137,12 @@ fig,ax = plt.subplots()
 fig.figsize = (10,5.625)
 fig.dpi = 140
 
-ax.scatter(goo_x,goo_y,color="blue")
-ax.scatter(boo_x,boo_y,color="purple")
-#ax.plot(tim_x,lig_y,color="indigo")
+ax.scatter(goo_x,goo_y,color="blue",label="ir_coords")
+ax.scatter(boo_x,boo_y,color="purple",label="eyeballed")
+ax.plot(tim_x,lig_y,color="indigo")
 ax.plot(tim_x,mri_y,label="mri 7-pixel *5e9",color="orange")
 
-plt.axhline(y=0,label="zero",color="grey")
+plt.axhline(y=0,color="grey")
 
 #ax.set_xlim()
 #ax.set_ylim()

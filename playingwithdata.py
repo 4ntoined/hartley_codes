@@ -12,7 +12,7 @@ dark_str = np.loadtxt("/home/antojr/stash/datatxt/dark_temp_v2.dat",dtype=str,sk
 coords_num = np.loadtxt("/home/antojr/stash/datatxt/ir_coords.txt",dtype=float,usecols=(0,2,3))
 coords_eid = np.loadtxt("/home/antojr/stash/datatxt/ir_coords.txt",dtype=str,usecols=(1))
 mri_dat = np.loadtxt("/home/antojr/stash/datatxt/mri_interpolated.txt",dtype=float,skiprows=1)
-
+loc_dat = np.loadtxt("/home/antojr/stash/datatxt/nucleus_locations_v2.txt",dtype=float)
 #for each scan there is:
 #julian date, smooth temp, dark level, best fit level, exposure time, doy, exposure id, outlier flag,
 #filename, long date (skip), ir_coords
@@ -21,10 +21,11 @@ typex = np.dtype([('julian date','f8'),('DOY','i4'),('exposure id','U8'),('tempe
 
 dats = []
 for i in range(len(dark_tem)):
-    dats.append(( dark_tem[i,0] , int(dark_tem[i,5]), dark_str[i], dark_tem[i,1], dark_tem[i,2], dark_tem[i,3] , -99., -99., mri_dat[i,0], mri_dat[i,1],mri_dat[i,2],mri_dat[i,3], dark_tem[i,4] , dark_tem[i,6], scan_str[i,0]))
+    dats.append(( dark_tem[i,0] , int(dark_tem[i,5]), dark_str[i], dark_tem[i,1], dark_tem[i,2], dark_tem[i,3] , loc_dat[i,1], loc_dat[i,2], mri_dat[i,0], mri_dat[i,1],mri_dat[i,2],mri_dat[i,3], dark_tem[i,4] , dark_tem[i,6], scan_str[i,0]))
     pass
 a = np.array( dats, dtype = typex )
 # we will go through every row
+"""
 for i in range(len(coords_num)):
     doy, xn, yn, = coords_num[i]
     ein = coords_eid[i]
@@ -43,4 +44,13 @@ for i in range(len(coords_num)):
     #if matched == False:
     #    print(f"no match found for {doy} {ein}")
     pass
-#print(a['mri 12-pixel'][215:230])
+"""
+#about to pull the ultimate gamer move
+"""
+outt = open("nucleus_location.txt","w")
+for i in range(len(a)):
+    outt.write(f"{a['julian date'][i]} {a['x-nucleus'][i]} {a['y-nucleus'][i]}\n")
+    pass
+outt.close()
+"""
+#print(a['y-nucleus'][215:230])
