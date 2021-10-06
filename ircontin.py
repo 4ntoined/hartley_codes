@@ -114,21 +114,26 @@ for i in range(len(direcs)):
 #okay time to plot
 lig_y = np.array(lights)
 tim_x = a[215:230]['julian date']
-
+#mri
+mri_y = a['mri 7-pixel'][215:230].copy()
+mri_y*=4.9e9
 #okay gonna split up the data for the plot
 goo_y = np.concatenate( [lig_y[1:3], lig_y[4:8], lig_y[9:13] ])
 goo_x = np.concatenate([ tim_x[1:3], tim_x[4:8], tim_x[9:13] ] )
 #print(goo_y)
 boo_y = np.concatenate([lig_y[0:1],lig_y[3:4],lig_y[8:9],lig_y[13:15]])
 boo_x = np.concatenate([tim_x[0:1],tim_x[3:4],tim_x[8:9],tim_x[13:15]])
+
 ### plotting ###
 fig,ax = plt.subplots()
 fig.figsize = (10,5.625)
 fig.dpi = 140
 
-ax.scatter(goo_x,goo_y,label="w/ ir coords",color="blue")
-ax.scatter(boo_x,boo_y,label="blind guess",color="purple")
-ax.plot(tim_x,lig_y,color="indigo")
+ax.scatter(goo_x,goo_y,color="blue")
+ax.scatter(boo_x,boo_y,color="purple")
+#ax.plot(tim_x,lig_y,color="indigo")
+ax.plot(tim_x,mri_y,label="mri 7-pixel *5e9",color="orange")
+
 plt.axhline(y=0,label="zero",color="grey")
 
 #ax.set_xlim()
