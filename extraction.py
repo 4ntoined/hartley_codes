@@ -31,18 +31,14 @@ for i in range(len(b[:,0])):    #through all the scan subdirectories
             pass
     b[i,2] = c                  #replace files list with just .fit filenames
 #b should have all the .fits from all the scans
-out=open("gokussj4.txt","w")
-file7 = open("seven.dat","w")   #will record same data as out for each one of the exposures
-file8 = open("eight.dat","w")
-file12 = open("twleve.dat","w")
-out.write("name // mid-observation time // exposure id // DOY // date // \
-optical-bench temp // exposure time,probably in milliseconds\n")
-file7.write("name // mid-observation time // exposure id // DOY // date // \
-optical-bench temp // exposure time,probably in milliseconds\n")
-file8.write("name // mid-observation time // exposure id // DOY // date // \
-optical-bench temp // exposure time,probably in milliseconds\n")
-file12.write("name // mid-observation time // exposure id // DOY // date // \
-optical-bench temp // exposure time,probably in milliseconds\n")
+out=open("oozaru.txt","w")
+file7 = open("seven_v2.dat","w")   #will record same data as out for each one of the exposures
+file8 = open("eight_v2.dat","w")
+file12 = open("twleve_v2.dat","w")
+
+for i in (out,file7,file8,file12):
+    i.write("name // mid-observation time // exposure id // DOY // date // optical-bench temp // exposure time // pixel scale // distance to comet\n")
+
 seven = []
 eight = []
 twelve = []
@@ -51,15 +47,16 @@ for i in range(len(b[:,0])):
     if len(files) >= 1: #will exclude scans with no .fit files (they return an empty list and break they code)
         files.sort(key=sorter)                                  #sorts the files in each directory based on number
         lastframe = fits.open(os.path.join(b[i,0],files[-1]))   #grab the last file/frame
-        name = files[-1]                                        #unpack header info
-        obstime = lastframe[0].header["OBSMIDJD"]
-        obsdate = lastframe[0].header["OBSDATE"]
-        temp = lastframe[0].header["OPTBENT"]
-        exposuretime = lastframe[0].header["INTTIME"]
-        #exposureid = lastframe[0].header["EXPID"]              #epxosure id in header doesn't include underscores
-        exposureid = b[i,0].split("/")[-1]
-        doy = b[i,0].split("/")[-2]
-        sting = f"{name} {obstime} {exposureid} {doy} {obsdate} {temp} {exposuretime}\n"
+        name = files[-1]                                        #col 0
+        obstime = lastframe[0].header["OBSMIDJD"]               #col 1
+        obsdate = lastframe[0].header["OBSDATE"]                #col 4
+        temp = lastframe[0].header["OPTBENT"]                   #col 5
+        exposuretime = lastframe[0].header["INTTIME"]           #col 6
+        exposureid = b[i,0].split("/")[-1]                      #col 2
+        doy = b[i,0].split("/")[-2]                             #col 3
+        pxlscl = lastframe[0].header['PXLSCALE']                #col 7
+        distcom = lastframe[0].header['CTRDIST']                #col 8
+        sting = f"{name} {obstime} {exposureid} {doy} {obsdate} {temp} {exposuretime} {pxlscl} {distcom}\n"
         out.write(sting)                                   #write the data to a file
         data = lastframe[0].data
         if data.shape == (256,512):                             #exludes 2 frames from 2 scans
@@ -103,8 +100,8 @@ for i in ((h7,"7"),(h8,"8"),(h12,"12")):
 fit7 = fits.PrimaryHDU(seven,header=h7)
 fit8 = fits.PrimaryHDU(eight,header=h8)
 fit12 = fits.PrimaryHDU(twelve,header=h12)
-fit7.writeto("sevensies_v3.fit")
-fit8.writeto("eightsies_v3.fit")
-fit12.writeto("twelvesies_v3.fit")
+#fit7.writeto("sevensies_v3.fit")
+#fit8.writeto("eightsies_v3.fit")
+#fit12.writeto("twelvesies_v3.fit")
 print("okay done for now")
 
