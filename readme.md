@@ -7,6 +7,9 @@ extraction.py might be more recent, unsure, will have to deal with
 __extraction.py__
 don't wanna repeat see dark_extraction
 
+to-do:
+* needs to include CTRDIST and PXLSCALE in the extraction
+
 __ircontin.py__
 integrates a smooted spectrum in the continuum short wavelength
 takes an aperture, location and size
