@@ -66,5 +66,21 @@ idk its a fits table as usual but it might as well also be an image idk
 -tweaked the code to A) run faster and B) show the h2o map
 -gonna tweak a few more things and see if we can see the co2 map also as well
 
+my data file legend:
+oozaru3.txt- golden one
+all the scans I'm using, in chronological order, with pixel scale and comet dist
+oozaru2.txt-
+above but not in order
+oozaru.txt-
+above but all last scans pulled, no cuts
+seven/eight/twelve_v2.txt/dat-
+includes pixel scale and comet dist
+seven/eight/twelve.txt/dat-
+
+broly.txt-
+oozaru3 with no pixel scale and comet dist
+ssbevegeta.txt-
+broly with no cuts
+
 notes:
 more to come
