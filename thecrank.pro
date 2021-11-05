@@ -28,7 +28,7 @@ print,"read in the dark"
 ;print,darkdat[5,4]
 ;print,fix(darkdat[5,*])
 
-for i=start_here,n_scans do begin
+for i=start_here,n_scans-1 do begin
 
 doy = fix(darkdat[5,i])
 doy = strtrim(string(doy),1)
