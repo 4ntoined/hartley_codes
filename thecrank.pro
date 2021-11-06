@@ -1,6 +1,6 @@
 @bulk_calibrate
 
-pro turn,dark_path,dark_scale,start_here
+pro turn,dark_path,dark_scale
 ;so dark path will be a path to the normalized master dark
 ;dark_scale really only needs to be the dark level best fit
 ;those numbers we already have for every scan so we need only
@@ -28,16 +28,16 @@ print,"read in the dark"
 ;print,darkdat[5,4]
 ;print,fix(darkdat[5,*])
 
-for i=start_here,n_scans-1 do begin
+for i=0,n_scans-1 do begin
 
 doy = fix(darkdat[5,i])
 doy = strtrim(string(doy),1)
-exx = (exps[0,i])
+exx = (exps[i])
 direc = '/chiron5/Sandbox/holt/Hartley2/ir/raw/'+doy+'/'+exx+'/'
 saveHere = '/chiron4/antojr/calibrated_ir/'+doy+'.'+exx+'/'
-drk_scl = darkdat[3,i] * darkdat[4]
-
+drk_scl = darkdat[3,i] * darkdat[4,i]
 bulk_calibrate, direc, dark, drk_scl, saveHere
 print,i
+
 endfor ;done with this scan
 end
