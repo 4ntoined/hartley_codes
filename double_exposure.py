@@ -19,7 +19,7 @@ files = q[:,2]
 
 for i in range(1,len(q)):
     words = scans[i].split("/") #uhh chiron4 0 antojr 1 calibrated_ir 2 scan.dir 3
-    print(words)
+    #print(words)
     doy, expi  = words[4].split(".") # doy 0 exposureid 1
     doyi = int(doy)
     if (doyi >= 298) and (doyi <= 300):
