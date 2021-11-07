@@ -41,10 +41,13 @@ def findEmissions(wavey):
         co2long_i = co2long1
     return [[h2oshort_i,h2olong_i],[co2short_i,co2long_i]]
 def make_gasmaps(pathToScanDirectory):
-    dat = fits.open(pathToScanDirectory + "/cube_smooth.fit") #cube with smooth spectra
-    waves = fits.open(pathToScanDirectory + "/cube_wave.fit")
-    dat = dat[0].data
-    waves = waves[0].data
+    datf = fits.open(pathToScanDirectory + "/cube_smooth_final.fit") #cube with smooth spectra
+    wavesf = fits.open(pathToScanDirectory + "/cube_wave_final.fit")
+    dat_h = datf[0].header
+    dat = datf[0].data.copy()
+    waves = wavesf[0].data.copy()
+    datf.close()
+    wavesf.close()
     ysize = dat.shape[1] #frames in one (1) scan ~16,32,etc
     xsize = dat.shape[2] #pixels in one (1) frame ~256
     outcube = np.ones((2,ysize,xsize),dtype=float) #("cubes/waterPlusMaps_prototype1.fit")
@@ -78,8 +81,8 @@ def make_gasmaps(pathToScanDirectory):
             outcube[1,yy,xx] = co2
             pass
         pass
-    fitter = fits.PrimaryHDU(outcube)
-    fitter.writeto(pathToScanDirectory + "/gasmaps_v0.fit")
+    fitter = fits.PrimaryHDU(outcube,header=dat_h)
+    fitter.writeto(pathToScanDirectory + "/cube_gasmaps_v0.fit")
     return
 #what directory to look for cubes?
 h1 = 2.59
@@ -89,7 +92,9 @@ c2 = 4.31
 a=[]
 q=0
 for paths, dirs, fils in os.walk("/chiron4/antojr/calibrated_ir/"):
-    a.append(paths,dirs,fils)
+    if len(fils) < 1: #should catch the first index where its the parent directory, which has no individual files
+        continue #should skip this one and move on to the next with no issue
+    a.append((paths,dirs,fils))
     make_gasmaps(paths)
     q+=1
     if q%160==0:
