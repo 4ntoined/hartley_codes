@@ -8,9 +8,10 @@ from astropy.io import fits as fits
 ##########################
 #pull data and wave cubes
 ##########################
-icube=fits.open("/chiron4/antojr/calibrated_ir/306.4000047/cube_smooth_final.fit")
-icube_waves=fits.open("/chiron4/antojr/calibrated_ir/306.4000047/cube_wave_final.fit")
-#scube = fits.open("cubes/cube_smooth_spectra_310.fit")
+icube=fits.open("/chiron4/antojr/calibrated_ir/307.4000015/cube_spatial_final.fit")
+icube2 =fits.open("/chiron4/antojr/calibrated_ir/307.4000015/cube_smooth_final.fit")
+icube_waves=fits.open("/chiron4/antojr/calibrated_ir/307.4000015/cube_wave_final.fit")
+#scube = fits.open("cubes/cube_smooth_spectra_310.fit")cube_smooth_final
 #tcube = fits.open("cubes/cube_smooth_spectra_310_v5.fit")
 #icube = fits.open("cubes/cube_308_5000008_data.fit")
 #icube_waves = fits.open("cubes/cube_308_5000008_wave.fit")
@@ -31,8 +32,9 @@ icube_waves=fits.open("/chiron4/antojr/calibrated_ir/306.4000047/cube_wave_final
 #####################
 #storing fits data
 ##################
-cube_dat=icube[0].data
-waves=icube_waves[0].data
+cube_dat = icube[0].data
+cube2 = icube2[0].data
+waves = icube_waves[0].data
 #scube_dat = scube[0].data
 #tcube_dat = tcube[0].data
 #file_dat = ifile[0].data
@@ -43,16 +45,17 @@ waves=icube_waves[0].data
 #spectra
 #xax=wave[:,17,200]
 
-print(cube_dat[462,25,199])
+print(cube_dat[462,10,199])
 
 #what to plot?
-ds9_x = 95
-ds9_y = 20
+ds9_x = 237
+ds9_y = 29
 ds9_x1 = 191
 ds9_y1 = 16
 
 xax = waves[:,ds9_y-1,ds9_x-1]
 spec_cube = cube_dat[:,ds9_y-1,ds9_x-1]
+spec2 = cube2[:,ds9_y-1,ds9_x-1]
 #spec_scube = scube_dat[ds9_x-1,ds9_y-1,:]
 #spec_tcube = tcube_dat[:,ds9_y-1,ds9_x-1]
 #xax1 = waves[:,ds9_y1-1,ds9_x1-1]
@@ -74,7 +77,8 @@ spec_cube = cube_dat[:,ds9_y-1,ds9_x-1]
 fig, ax = plt.subplots()
 fig.figsize=(8,6)
 fig.dpi=120
-ax.plot(xax,spec_cube,label="data",color='lightgreen')
+#ax.plot(xax,spec_cube,label="data",color='lightgreen')
+ax.plot(xax,spec2,label="smooth",color='lightblue')
 #ax.plot(xax,spec_cube,label="smoothed",color='blue',lw=1)
 #ax.plot(xax,spec_tcube,label="smoothed2",color='blue',lw=1)
 #ax.plot(xax1,spec_cube1,label="on nucleus",color='green')
@@ -86,14 +90,14 @@ ax.vlines((2.59,2.77,4.17,4.31),ymin=-.001, ymax=.0012)
 #ax.plot(xax,spec_2waymean,label="2 way mean")
 #ax.plot(wave,cube2[0].data[:,9,55],label='data',color='orange')
 #ax.plot(xax,spectral_mean_dat,label='spectral mean',color='darkblue')
-ax.set_ylim((-.0006,.002))
-ax.set_xlim((2.2,4.5))
+ax.set_ylim((-.0001,.001))
+ax.set_xlim((2,4.8))
 #ax.set_xscale("log")
 #ax.set_yscale("log")
 ax.legend(loc='best')
 ax.set_xlabel("wavelength (microns)")
 ax.set_ylabel("data value")
 ax.grid(which="both")
-ax.set_title(f"spectrum 310.4007500, y={ds9_y},x={ds9_x}")
+ax.set_title(f"spectrum 307.4000015, y={ds9_y},x={ds9_x}")
 #ax.set_title("temp over time")
 plt.show()
