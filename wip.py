@@ -8,8 +8,8 @@ from astropy.io import fits as fits
 ##########################
 #pull data and wave cubes
 ##########################
-icube=fits.open("/chiron4/antojr/codespace/seq2/cube_spatial.fit")
-icube_waves=fits.open("/chiron4/antojr/codespace/seq2/cube_wave.fit")
+icube=fits.open("/chiron4/antojr/calibrated_ir/306.4000047/cube_smooth_final.fit")
+icube_waves=fits.open("/chiron4/antojr/calibrated_ir/306.4000047/cube_wave_final.fit")
 #scube = fits.open("cubes/cube_smooth_spectra_310.fit")
 #tcube = fits.open("cubes/cube_smooth_spectra_310_v5.fit")
 #icube = fits.open("cubes/cube_308_5000008_data.fit")
@@ -46,8 +46,8 @@ waves=icube_waves[0].data
 print(cube_dat[462,25,199])
 
 #what to plot?
-ds9_x = 200
-ds9_y = 26
+ds9_x = 95
+ds9_y = 20
 ds9_x1 = 191
 ds9_y1 = 16
 
@@ -58,7 +58,7 @@ spec_cube = cube_dat[:,ds9_y-1,ds9_x-1]
 #xax1 = waves[:,ds9_y1-1,ds9_x1-1]
 #spec_cube1 = cube_dat[:,ds9_y1-1,ds9_x1-1]
 
-print(spec_cube[462])
+#print(spec_cube[462])
 #print(spec_scube[462])
 #print(spec_tcube[462])
 
@@ -75,18 +75,19 @@ fig, ax = plt.subplots()
 fig.figsize=(8,6)
 fig.dpi=120
 ax.plot(xax,spec_cube,label="data",color='lightgreen')
-#ax.plot(xax,spec_scube,label="smoothed",color='blue',lw=1)
+#ax.plot(xax,spec_cube,label="smoothed",color='blue',lw=1)
 #ax.plot(xax,spec_tcube,label="smoothed2",color='blue',lw=1)
 #ax.plot(xax1,spec_cube1,label="on nucleus",color='green')
 #ax.plot(temp1[15800:16000,0],temp1[15800:16000,1],label="smooth",color='orange',lw=2.)
 #ax.plot(temp1[15800:16000,0],temp2[15800:16000],label="extra smooth",color='green',lw=1.)
-#ax.vlines((2.59,2.77,4.17,4.31),ymin=-.001, ymax=.0012)
+ax.vlines((2.59,2.77,4.17,4.31),ymin=-.001, ymax=.0012)
 #ax.plot(xax,spec_fileA,label="from file")
 #ax.plot(xax,resist_dat,label="spatial dimension mean")
 #ax.plot(xax,spec_2waymean,label="2 way mean")
 #ax.plot(wave,cube2[0].data[:,9,55],label='data',color='orange')
 #ax.plot(xax,spectral_mean_dat,label='spectral mean',color='darkblue')
-#ax.set_ylim((-.0006,.001))
+ax.set_ylim((-.0006,.002))
+ax.set_xlim((2.2,4.5))
 #ax.set_xscale("log")
 #ax.set_yscale("log")
 ax.legend(loc='best')
