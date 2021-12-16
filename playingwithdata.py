@@ -12,7 +12,7 @@ dark_str = np.loadtxt("/home/antojr/stash/datatxt/dark_temp_v2.dat",dtype=str,sk
 coords_num = np.loadtxt("/home/antojr/stash/datatxt/ir_coords.txt",dtype=float,usecols=(0,2,3))
 coords_eid = np.loadtxt("/home/antojr/stash/datatxt/ir_coords.txt",dtype=str,usecols=(1))
 mri_dat = np.loadtxt("/home/antojr/stash/datatxt/mri_interpolated.txt",dtype=float,skiprows=1)
-loc_dat = np.loadtxt("/home/antojr/stash/datatxt/nucleus_locations_v2.txt",dtype=float)
+loc_dat = np.loadtxt("/home/antojr/stash/datatxt/nucleus_location_v3.txt",dtype=float)
 #for each scan there is:
 #julian date, smooth temp, dark level, best fit level, exposure time, doy, exposure id, outlier flag,
 #filename, long date (skip), ir_coords
@@ -42,12 +42,12 @@ for i in range(len(coords_num)):
             #okay it's over
             matched = True
         pass
-    #if matched == False:
-    #    print(f"no match found for {doy} {ein}")
+    if matched == False:
+        print(f"no match found for {doy} {ein}")
     pass
-"""
+
 #about to pull the ultimate gamer move
-"""
+
 outt = open("nucleus_location.txt","w")
 for i in range(len(a)):
     outt.write(f"{a['julian date'][i]} {a['x-nucleus'][i]} {a['y-nucleus'][i]}\n")
