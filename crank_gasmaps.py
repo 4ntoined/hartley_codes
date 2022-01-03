@@ -1,5 +1,7 @@
 #Antoine Washington
 #continuum removal
+#fixed nan problem
+#need to add dust
 
 import os
 import numpy as np
@@ -60,8 +62,8 @@ def make_gasmaps(pathToScanDirectory):
             h2os,h2ol = emiss[0]
             co2s,co2l = emiss[1]
             ## level of spec at h2o ends
-            h2oshort_avg = np.sum( spect[ h2os-10:h2os+1] ) / 11.
-            h2olong_avg = np.sum( spect[ h2ol:h2ol+9] ) / 9.
+            h2oshort_avg = np.nansum( spect[ h2os-10:h2os+1] ) / np.count_nonzero(~np.isnan( spect[ h2os-10:h2os+1]  ))
+            h2olong_avg = np.nansum( spect[ h2ol:h2ol+9] ) / np.count_nonzero(~np.isnan( spect[ h2ol:h2ol+9] ))
             ## continuum of h2o
             wave_h = wavex[h2os:h2ol+1] #wavelength ticks over h2o line
             contin_h = interp1d([h1,h2],[h2oshort_avg,h2olong_avg],kind="linear",bounds_error=False,fill_value="extrapolate") #estimated continuum
@@ -69,8 +71,8 @@ def make_gasmaps(pathToScanDirectory):
             h2oline = spect[h2os:h2ol+1] - contin_hline #h2o emission, with continuum removed
             h2o = np.trapz(h2oline,x=wave_h)
             ## lets go co2
-            co2short_avg = np.sum( spect[co2s-14:co2s+1] ) / 15.
-            co2long_avg = np.sum( spect[co2l:co2l+8] ) / 8.
+            co2short_avg = np.nansum( spect[co2s-14:co2s+1] ) / np.count_nonzero(~np.isnan( spect[co2s-14:co2s+1] ))
+            co2long_avg = np.nansum( spect[co2l:co2l+8] ) / np.count_nonzero(~np.isnan( spect[co2l:co2l+8] ))
             ## co2 continuum
             wave_c = wavex[co2s:co2l+1]
             contin_c = interp1d([c1,c2],[co2short_avg,co2long_avg],kind="linear",bounds_error=False,fill_value="extrapolate")
@@ -85,6 +87,8 @@ def make_gasmaps(pathToScanDirectory):
     fitter.writeto(pathToScanDirectory + "/cube_gasmaps_v0.fit")
     return
 #what directory to look for cubes?
+g1 = 1.80
+g2 = 2.20
 h1 = 2.59
 h2 = 2.77
 c1 = 4.17
