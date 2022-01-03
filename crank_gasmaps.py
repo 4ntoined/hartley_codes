@@ -89,12 +89,10 @@ h1 = 2.59
 h2 = 2.77
 c1 = 4.17
 c2 = 4.31
-a=[]
 q=0
 for paths, dirs, fils in os.walk("/chiron4/antojr/calibrated_ir/"):
     if len(fils) < 1: #should catch the first index where its the parent directory, which has no individual files
-        continue #should skip this one and move on to the next with no issue
-    a.append((paths,dirs,fils))
+        continue #should skip this one and move on to the next with no issu
     make_gasmaps(paths)
     q+=1
     if q%160==0:
