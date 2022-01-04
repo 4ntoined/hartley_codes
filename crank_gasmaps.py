@@ -76,6 +76,7 @@ def make_gasmaps(pathToScanDirectory):
             emiss = findEmissions(wavex)
             h2os,h2ol = emiss[0]
             co2s,co2l = emiss[1]
+            duss,dusl = emiss[2]
             #############  h2o  ################
             ## level of spec at h2o ends
             h2oshort_avg = np.nansum( spect[ h2os-10:h2os+1] ) / np.count_nonzero(~np.isnan( spect[ h2os-10:h2os+1]  ))
@@ -97,13 +98,15 @@ def make_gasmaps(pathToScanDirectory):
             co2line = spect[co2s:co2l+1] - contin_cline
             co2 = np.trapz(co2line,x=wave_c)
             #############  dust  ###############
-            ##left here##
+            wave_d = wavex[duss:dusl+1]
+            dusto = np.trapz(spect[duss:dusl+1],x=wave_d)
             outcube[0,yy,xx] = h2o
             outcube[1,yy,xx] = co2
+            outcube[2,yy,xx] = dusto
             pass
         pass
     fitter = fits.PrimaryHDU(outcube,header=dat_h)
-    fitter.writeto(pathToScanDirectory + "/cube_gasmaps_v0.fit")
+    fitter.writeto(pathToScanDirectory + "/cube_gasmaps_v1.fit")
     return
 #what directory to look for cubes?
 d1 = 1.80

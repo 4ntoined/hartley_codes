@@ -53,7 +53,7 @@ PRO combine_rad_fits_folder, FILE_DIR = file_dir, NS_FLIP = ns_flip
        output_data[*,*,0] = tmp1
        output_waves[*,*,0] = wave1
        FOR i = 1, num_files-1 DO BEGIN
-         tmp = READFITS(files_w_ext[i], t_hdr, /SILENT)
+         tmp = READFITS(files_w_ext[i], t_hdr2, /SILENT)
          wave = READFITS(files_w_ext[i], EXTEN=2, /SILENT)
 ;                        badpixel = READFITS(files_w_ext[i], EXTEN=1, /SILENT)
 ;                        tmp(where(badpixel gt 0))=!VALUES.F_NAN
@@ -78,7 +78,7 @@ PRO combine_rad_fits_folder, FILE_DIR = file_dir, NS_FLIP = ns_flip
 ;; account that IDL plots from the bottom up in a window so the data is flipped to look correct
 ;; in a window. The other reverse takes into account that the data must be reversed left-right since the spatial
 ;; dimension on the array appears backwards when read out and we work with the sun to the right.
-    writefits, data_filename, REVERSE(REVERSE(output_data, 1), 2)
-    writefits, waves_filename, REVERSE(REVERSE(output_waves, 1), 2)
+    writefits, data_filename, REVERSE(REVERSE(output_data, 1), 2), HEADER = t_hdr
+    writefits, waves_filename, REVERSE(REVERSE(output_waves, 1), 2), HEADER = t_hdr
 
 END

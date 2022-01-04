@@ -3,7 +3,7 @@ pro spectral_mean_cube,pathToCube,sigma_cut,output
 ;cube has dimensions [256,32,512]
 ;each pixel [a,b,*] has a spectrum that needs to be smoothed along that direction
 pathy = pathToCube + '/cube_spatial.fit'
-data = readfits(pathy,header)
+data = readfits(pathy,header1)
 ;going over each pixel
 xsize = n_elements(data(*,0,0))
 ysize = n_elements(data(0,*,0))
@@ -26,7 +26,7 @@ yline = [ [yline],[pixel_specz] ]
 endfor
 xline = [ xline,yline ]
 endfor
-writefits,pathToCube+'/cube_smooth.fit',xline
+writefits,pathToCube+'/cube_smooth.fit',xline, HEADER=header1
 output = xline
 return
 end

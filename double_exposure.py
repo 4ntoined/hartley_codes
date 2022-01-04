@@ -13,11 +13,12 @@ for paths, dirs,fils, in os.walk("/chiron4/antojr/calibrated_ir/"):
 q = np.array(q,dtype=object)
 #q[n:1] is going to be empty, 2 has files, 0 has the scan_directories
 scans = q[:,0]
+scans = ["/chiron4/antojr/calibrated_ir/310.4007300"]
 files = q[:,2]
 #decide if a scan doy 300 299 298 or 309 to 320
 #pretty easy actually
 
-for i in range(82,len(q)):
+for i in range(len(scans)):
     words = scans[i].split("/") #uhh chiron4 0 antojr 1 calibrated_ir 2 scan.dir 3
     #print(words)
     doy, expi  = words[4].split(".") # doy 0 exposureid 1
@@ -49,6 +50,7 @@ for i in range(82,len(q)):
         #only these scans will have_fixed labels for the double exposure deal
         #we'll do this in the else() as well but those directories only have spatial.fit
         #so those will be renamed into final instead
+        """
         cute = fit.open(scans[i]+"/cube_spatial_fixed.fit")
         toe = cute[0].header
         y = cute[0].data.copy()
@@ -56,6 +58,7 @@ for i in range(82,len(q)):
         prime = fit.PrimaryHDU(y,header=toe)
         prime.writeto(scans[i]+"/cube_spatial_final.fit")
         print(scans[i])
+        """
     else:
         #so what if we took this opportunity to rename all the other cubes so they're consistent all around
         #we can adopt a convention like sptatial_final and smooth_final and wave_final
@@ -79,4 +82,3 @@ for i in range(82,len(q)):
         prim = fit.PrimaryHDU(y,header=toe)
         prim.writeto(scans[i]+"/cube_spatial_final.fit")
     pass
-
