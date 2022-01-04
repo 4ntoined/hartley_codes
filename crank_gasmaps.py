@@ -11,7 +11,7 @@ from scipy.interpolate import interp1d
 
 def findEmissions(wavey):
     global h1,h2,c1,c2
-    #h2o
+    ############  h2o  ###############
     #short
     h2oshort2 = int(np.argwhere(wavey>=h1)[0])                  #finds all indeces exceeding the target, grabs the shortest one
     h2oshort1 = h2oshort2 - 1
@@ -26,7 +26,7 @@ def findEmissions(wavey):
         h2olong_i = h2olong2                                  #so take that one
     else:                                                       #in the case of a tie, we go with the lower index
         h2olong_i = h2olong1
-    #co2
+    ############  co2  ###############
     #short
     co2short2 = int(np.argwhere(wavey>=c1)[0])                  #finds all indeces exceeding the target, grabs the shortest one
     co2short1 = co2short2 - 1
@@ -41,7 +41,22 @@ def findEmissions(wavey):
         co2long_i = co2long2                                  #so take that one
     else:                                                       #in the case of a tie, we go with the lower index
         co2long_i = co2long1
-    return [[h2oshort_i,h2olong_i],[co2short_i,co2long_i]]
+    ############  dust  ###############
+    #short
+    dshort2 = int(np.argwhere(wavey>=d1)[0])
+    dshort1 = dshort2 -1
+    if abs(wavey[dshort2] - d1) < abs(wavey[dshort1] - d1):
+        dshort_i = dshort2
+    else:
+        dshort_i = dshort1
+    #long
+    dlong2 = int(np.argwhere(wavey>=d1)[0])
+    dlong1 = dlong2 -1
+    if abs(wavey[dlong2] - d2) < abs(wavey[dlong1] - d2):
+        dlong_i = dlong2
+    else:
+        dlong_i = dlong1
+    return [[h2oshort_i,h2olong_i],[co2short_i,co2long_i],[dshort_i,dlong_i]]
 def make_gasmaps(pathToScanDirectory):
     datf = fits.open(pathToScanDirectory + "/cube_smooth_final.fit") #cube with smooth spectra
     wavesf = fits.open(pathToScanDirectory + "/cube_wave_final.fit")
@@ -61,6 +76,7 @@ def make_gasmaps(pathToScanDirectory):
             emiss = findEmissions(wavex)
             h2os,h2ol = emiss[0]
             co2s,co2l = emiss[1]
+            #############  h2o  ################
             ## level of spec at h2o ends
             h2oshort_avg = np.nansum( spect[ h2os-10:h2os+1] ) / np.count_nonzero(~np.isnan( spect[ h2os-10:h2os+1]  ))
             h2olong_avg = np.nansum( spect[ h2ol:h2ol+9] ) / np.count_nonzero(~np.isnan( spect[ h2ol:h2ol+9] ))
@@ -70,6 +86,7 @@ def make_gasmaps(pathToScanDirectory):
             contin_hline = contin_h(wave_h) #continuum evaluated on h2o line wavelength ticks
             h2oline = spect[h2os:h2ol+1] - contin_hline #h2o emission, with continuum removed
             h2o = np.trapz(h2oline,x=wave_h)
+            #############  co2  ################
             ## lets go co2
             co2short_avg = np.nansum( spect[co2s-14:co2s+1] ) / np.count_nonzero(~np.isnan( spect[co2s-14:co2s+1] ))
             co2long_avg = np.nansum( spect[co2l:co2l+8] ) / np.count_nonzero(~np.isnan( spect[co2l:co2l+8] ))
@@ -79,6 +96,8 @@ def make_gasmaps(pathToScanDirectory):
             contin_cline = contin_c(wave_c)
             co2line = spect[co2s:co2l+1] - contin_cline
             co2 = np.trapz(co2line,x=wave_c)
+            #############  dust  ###############
+            ##left here##
             outcube[0,yy,xx] = h2o
             outcube[1,yy,xx] = co2
             pass
@@ -87,8 +106,8 @@ def make_gasmaps(pathToScanDirectory):
     fitter.writeto(pathToScanDirectory + "/cube_gasmaps_v0.fit")
     return
 #what directory to look for cubes?
-g1 = 1.80
-g2 = 2.20
+d1 = 1.80
+d2 = 2.20
 h1 = 2.59
 h2 = 2.77
 c1 = 4.17
