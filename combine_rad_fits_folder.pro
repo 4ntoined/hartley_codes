@@ -42,7 +42,7 @@ PRO combine_rad_fits_folder, FILE_DIR = file_dir, NS_FLIP = ns_flip
     IF (n_elements(NS_FLIP) EQ 0) THEN NS_FLIP=0
     IF (n_elements(USE_MAPS) EQ 0) THEN USE_MAPS=0
 
-    files_w_ext = file_search(FILE_DIR, '*.fit', COUNT = num_files)
+    files_w_ext = file_search(FILE_DIR, 'cal_*.fit', COUNT = num_files)
        tmp1 = READFITS(files_w_ext[0], t_hdr, /SILENT)
        wave1 = READFITS(files_w_ext[0], EXTEN=1, /SILENT)
        size_data = SIZE(tmp1)
@@ -53,7 +53,7 @@ PRO combine_rad_fits_folder, FILE_DIR = file_dir, NS_FLIP = ns_flip
        output_data[*,*,0] = tmp1
        output_waves[*,*,0] = wave1
        FOR i = 1, num_files-1 DO BEGIN
-         tmp = READFITS(files_w_ext[i], t_hdr2, /SILENT)
+         tmp = READFITS(files_w_ext[i], t_hdr, /SILENT)
          wave = READFITS(files_w_ext[i], EXTEN=2, /SILENT)
 ;                        badpixel = READFITS(files_w_ext[i], EXTEN=1, /SILENT)
 ;                        tmp(where(badpixel gt 0))=!VALUES.F_NAN
@@ -71,14 +71,14 @@ PRO combine_rad_fits_folder, FILE_DIR = file_dir, NS_FLIP = ns_flip
          output_waves = REVERSE(output_waves, 2)
        ENDIF
 ;hey I'm goku
-    data_filename = FILE_DIR + '/cube_spatial.fit'
-    waves_filename = FILE_DIR + '/cube_wave.fit'
+    data_filename = FILE_DIR + '/cube_spatial_v1.fit'
+    waves_filename = FILE_DIR + '/cube_wave_v1.fit'
 
 ;; If we have a north-to-south scan, two reverses must take place. One reverse takes into
 ;; account that IDL plots from the bottom up in a window so the data is flipped to look correct
 ;; in a window. The other reverse takes into account that the data must be reversed left-right since the spatial
 ;; dimension on the array appears backwards when read out and we work with the sun to the right.
-    writefits, data_filename, REVERSE(REVERSE(output_data, 1), 2), HEADER = t_hdr
-    writefits, waves_filename, REVERSE(REVERSE(output_waves, 1), 2), HEADER = t_hdr
+    writefits, data_filename, REVERSE(REVERSE(output_data, 1), 2), t_hdr
+    writefits, waves_filename, REVERSE(REVERSE(output_waves, 1), 2), t_hdr
 
 END
