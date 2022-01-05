@@ -50,7 +50,7 @@ def findEmissions(wavey):
     else:
         dshort_i = dshort1
     #long
-    dlong2 = int(np.argwhere(wavey>=d1)[0])
+    dlong2 = int(np.argwhere(wavey>=d2)[0])
     dlong1 = dlong2 -1
     if abs(wavey[dlong2] - d2) < abs(wavey[dlong1] - d2):
         dlong_i = dlong2
@@ -58,8 +58,8 @@ def findEmissions(wavey):
         dlong_i = dlong1
     return [[h2oshort_i,h2olong_i],[co2short_i,co2long_i],[dshort_i,dlong_i]]
 def make_gasmaps(pathToScanDirectory):
-    datf = fits.open(pathToScanDirectory + "/cube_smooth_final.fit") #cube with smooth spectra
-    wavesf = fits.open(pathToScanDirectory + "/cube_wave_final.fit")
+    datf = fits.open(pathToScanDirectory + "/cube_smoothspace_v1.fit") #cube with smooth spectra
+    wavesf = fits.open(pathToScanDirectory + "/cube_wave_v1.fit")
     dat_h = datf[0].header
     dat = datf[0].data.copy()
     waves = wavesf[0].data.copy()
@@ -67,7 +67,7 @@ def make_gasmaps(pathToScanDirectory):
     wavesf.close()
     ysize = dat.shape[1] #frames in one (1) scan ~16,32,etc
     xsize = dat.shape[2] #pixels in one (1) frame ~256
-    outcube = np.ones((2,ysize,xsize),dtype=float) #("cubes/waterPlusMaps_prototype1.fit")
+    outcube = np.ones((3,ysize,xsize),dtype=float) #("cubes/waterPlusMaps_prototype1.fit")
     for xx in range(xsize): #for each pixel in the x
         for yy in range(ysize): #take a pixel in the y
             pixelx,pixely = xx, yy #add 1 to get ds9 coordinates
@@ -79,8 +79,16 @@ def make_gasmaps(pathToScanDirectory):
             duss,dusl = emiss[2]
             #############  h2o  ################
             ## level of spec at h2o ends
-            h2oshort_avg = np.nansum( spect[ h2os-10:h2os+1] ) / np.count_nonzero(~np.isnan( spect[ h2os-10:h2os+1]  ))
-            h2olong_avg = np.nansum( spect[ h2ol:h2ol+9] ) / np.count_nonzero(~np.isnan( spect[ h2ol:h2ol+9] ))
+            hew1 = np.count_nonzero(~np.isnan( spect[ h2os-10:h2os+1]  ))
+            hew2 = np.count_nonzero(~np.isnan( spect[ h2ol:h2ol+9] ))
+            if hew1 == 0:
+                h2oshort_avg = np.nansum( spect[ h2os-10:h2os+1] ) / 11.
+            else:
+                h2oshort_avg = np.nansum( spect[ h2os-10:h2os+1] ) / float(hew1)
+            if hew2 == 0:
+                h2olong_avg = np.nansum( spect[ h2ol:h2ol+9] ) / 9.
+            else:
+                h2olong_avg = np.nansum( spect[ h2ol:h2ol+9] ) / float(hew2)
             ## continuum of h2o
             wave_h = wavex[h2os:h2ol+1] #wavelength ticks over h2o line
             contin_h = interp1d([h1,h2],[h2oshort_avg,h2olong_avg],kind="linear",bounds_error=False,fill_value="extrapolate") #estimated continuum
@@ -89,8 +97,16 @@ def make_gasmaps(pathToScanDirectory):
             h2o = np.trapz(h2oline,x=wave_h)
             #############  co2  ################
             ## lets go co2
-            co2short_avg = np.nansum( spect[co2s-14:co2s+1] ) / np.count_nonzero(~np.isnan( spect[co2s-14:co2s+1] ))
-            co2long_avg = np.nansum( spect[co2l:co2l+8] ) / np.count_nonzero(~np.isnan( spect[co2l:co2l+8] ))
+            cew1 = np.count_nonzero(~np.isnan( spect[co2s-14:co2s+1] ))
+            cew2 = np.count_nonzero(~np.isnan( spect[co2l:co2l+8] ))
+            if cew1 == 0:
+                co2short_avg = np.nansum( spect[co2s-14:co2s+1] ) / 15.
+            else:
+                co2short_avg = np.nansum( spect[co2s-14:co2s+1] ) / float(cew1)
+            if cew2 == 0:
+                co2long_avg = np.nansum( spect[co2l:co2l+8] ) / 8.
+            else:
+                co2long_avg = np.nansum( spect[co2l:co2l+8] ) / float(cew2)
             ## co2 continuum
             wave_c = wavex[co2s:co2l+1]
             contin_c = interp1d([c1,c2],[co2short_avg,co2long_avg],kind="linear",bounds_error=False,fill_value="extrapolate")
