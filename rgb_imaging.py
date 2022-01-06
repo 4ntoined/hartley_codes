@@ -33,9 +33,13 @@ goku[:,:,0] = red.copy() #needs to be [ysize, xsize]
 goku[:,:,1] = green.copy()
 goku[:,:,2] = blue.copy()
 
-fig,ax = plt.subplots()
+fig,(ax1,ax2,ax3,ax4) = plt.subplots(4,1)
 fig.dpi=140
 
-ax.imshow(goku)
+ax1.imshow(goku)
+ax2.imshow(goku[:,:,0],cmap="Reds")
+ax3.imshow(goku[:,:,1],cmap="Greens")
+ax4.imshow(goku[:,:,2],cmap="Blues")
 
 plt.show()
+

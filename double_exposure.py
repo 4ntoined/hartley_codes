@@ -7,78 +7,108 @@ import numpy as np
 import os
 import astropy.io.fits as fit
 
+def doubl(datta):
+    nframes = datta.shape[1]
+    nwave = datta.shape[0]
+    z = np.ones((nwave,nframes*2,256))
+    z = np.ones((nwave,nframes*2,256))
+    z[:,0::2,:] = datta[:,:,:].copy()
+    z[:,1::2,:] = datta[:,:,:].copy()
+    z=np.array(z) #maybe redundant but it makes me feel better
+    return z
+
 q = []
 for paths, dirs,fils, in os.walk("/chiron4/antojr/calibrated_ir/"):
     q.append([paths,dirs,fils])
 q = np.array(q,dtype=object)
 #q[n:1] is going to be empty, 2 has files, 0 has the scan_directories
 scans = q[:,0]
-scans = ["/chiron4/antojr/calibrated_ir/310.4007300"]
+#scans = ["/chiron4/antojr/calibrated_ir/310.4007300"]  #for one pesky scan
 files = q[:,2]
 #decide if a scan doy 300 299 298 or 309 to 320
 #pretty easy actually
 
-for i in range(len(scans)):
-    words = scans[i].split("/") #uhh chiron4 0 antojr 1 calibrated_ir 2 scan.dir 3
+for i in range(0,len(scans)):   #we start at one to avoid the parent directory
+    words = scans[i].split("/") #uhh "" 0  chiron4 1 antojr 2 calibrated_ir 3 scan.dir 4
     #print(words)
     doy, expi  = words[4].split(".") # doy 0 exposureid 1
     doyi = int(doy)
+    if i%160==0:    #progress marker
+        print(i)
     if ( (doyi >= 298) and (doyi <= 300) ) or ( (doyi >= 309) and (doyi <= 320)  ): #these scans need to have their cubes doubled in the frame direction
         #do the double
-        cubed = fit.open(scans[i]+"/cube_smooth.fit")
-        waved = fit.open(scans[i]+"/cube_wave.fit")
-        hdr = cubed[0].header
-        hdr_w = waved[0].header
-        cube = cubed[0].data
-        waves = waved[0].data
-        nframes = cube.shape[1]
-        z = np.ones((512,nframes*2,256))
-        z[:,0::2,:] = cube[:,:,:].copy()
-        z[:,1::2,:] = cube[:,:,:].copy()
-        z=np.array(z) #maybe redundant but it makes me feel better
-        x = np.ones((512,nframes*2,256))
-        x[:,0::2,:] = waves[:,:,:].copy()
-        x[:,1::2,:] = waves[:,:,:].copy()
-        x=np.array(x)
-        cubed.close()
-        waved.close()
-        hdu = fit.PrimaryHDU(z,header=hdr)
-        hdu.writeto(scans[i]+"/cube_smooth_final.fit")
-        hduw = fit.PrimaryHDU(x,header=hdr_w)
-        hduw.writeto(scans[i]+"/cube_wave_final.fit")
-        #so while we're here we will also rename the spatial_fixed into final as well
-        #only these scans will have_fixed labels for the double exposure deal
-        #we'll do this in the else() as well but those directories only have spatial.fit
-        #so those will be renamed into final instead
-        """
-        cute = fit.open(scans[i]+"/cube_spatial_fixed.fit")
-        toe = cute[0].header
-        y = cute[0].data.copy()
-        cute.close()
-        prime = fit.PrimaryHDU(y,header=toe)
-        prime.writeto(scans[i]+"/cube_spatial_final.fit")
-        print(scans[i])
-        """
+        #i now need to double, spatial, wave, smooth, spacesmooth, and gasmaps nice
+        dat = fit.open(scans[i]+"/cube_spatial_v1.fit")
+        hdr = dat[0].header
+        dat = dat[0].data
+        doub_dat = doubl(dat)
+        hdu = fit.PrimaryHDU(doub_dat,header=hdr)
+        hdu.writeto(scans[i]+"/cube_spatial_final_v1.fit")
+        # wave
+        dat = fit.open(scans[i]+"/cube_wave_v1.fit")
+        hdr = dat[0].header
+        dat = dat[0].data
+        doub_dat = doubl(dat)
+        hdu = fit.PrimaryHDU(doub_dat,header=hdr)
+        hdu.writeto(scans[i]+"/cube_wave_final_v1.fit")
+        # smooth
+        dat = fit.open(scans[i]+"/cube_smooth_v1.fit")
+        hdr = dat[0].header
+        dat = dat[0].data
+        doub_dat = doubl(dat)
+        hdu = fit.PrimaryHDU(doub_dat,header=hdr)
+        hdu.writeto(scans[i]+"/cube_smooth_final_v1.fit")
+        # spacesmooth
+        dat = fit.open(scans[i]+"/cube_smoothspace_v1.fit")
+        hdr = dat[0].header
+        dat = dat[0].data
+        doub_dat = doubl(dat)
+        hdu = fit.PrimaryHDU(doub_dat,header=hdr)
+        hdu.writeto(scans[i]+"/cube_smoothspace_final_v1.fit")
+        # gasmaps
+        dat = fit.open(scans[i]+"/cube_gasmaps_v1.fit")
+        hdr = dat[0].header
+        dat = dat[0].data
+        doub_dat = doubl(dat)
+        hdu = fit.PrimaryHDU(doub_dat,header=hdr)
+        hdu.writeto(scans[i]+"/cube_gasmaps_final_v1.fit")
+        # okay we're done
     else:
         #so what if we took this opportunity to rename all the other cubes so they're consistent all around
         #we can adopt a convention like sptatial_final and smooth_final and wave_final
-        cube = fit.open(scans[i]+"/cube_smooth.fit")
-        waves = fit.open(scans[i]+"/cube_wave.fit")
-        hdr = cube[0].header
-        hdr_w = waves[0].header
-        z = cube[0].data.copy()
-        x = waves[0].data.copy()
-        cube.close()
-        waves.close()
+        dat = fit.open(scans[i]+"/cube_spatial_v1.fit")
+        hdr = dat[0].header
+        z = dat[0].data.copy()
+        dat.close()
         hdu = fit.PrimaryHDU(z,header=hdr)
-        hduw = fit.PrimaryHDU(x,header=hdr_w)
-        hdu.writeto(scans[i]+"/cube_smooth_final.fit")
-        hduw.writeto(scans[i]+"/cube_wave_final.fit")
-        #okay regular spatial files now
-        cute = fit.open(scans[i]+"/cube_spatial.fit")
-        toe = cute[0].header
-        y = cute[0].data.copy()
-        cute.close()
-        prim = fit.PrimaryHDU(y,header=toe)
-        prim.writeto(scans[i]+"/cube_spatial_final.fit")
+        hdu.writeto(scans[i]+"/cube_spatial_final_v1.fit")
+        #wave
+        dat = fit.open(scans[i]+"/cube_wave_v1.fit")
+        hdr = dat[0].header
+        z = dat[0].data.copy()
+        dat.close()
+        hdu = fit.PrimaryHDU(z,header=hdr)
+        hdu.writeto(scans[i]+"/cube_wave_final_v1.fit")
+        # smooth
+        dat = fit.open(scans[i]+"/cube_smooth_v1.fit")
+        hdr = dat[0].header
+        z = dat[0].data.copy()
+        dat.close()
+        hdu = fit.PrimaryHDU(z,header=hdr)
+        hdu.writeto(scans[i]+"/cube_smooth_final_v1.fit")
+        #spacesmooth
+        dat = fit.open(scans[i]+"/cube_smoothspace_v1.fit")
+        hdr = dat[0].header
+        z = dat[0].data.copy()
+        dat.close()
+        hdu = fit.PrimaryHDU(z,header=hdr)
+        hdu.writeto(scans[i]+"/cube_smoothspace_final_v1.fit")
+        # gasmaps
+        dat = fit.open(scans[i]+"/cube_gasmaps_v1.fit")
+        hdr = dat[0].header
+        z = dat[0].data.copy()
+        dat.close()
+        hdu = fit.PrimaryHDU(z,header=hdr)
+        hdu.writeto(scans[i]+"/cube_gasmaps_final_v1.fit")
+        #okay done again
     pass
