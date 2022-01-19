@@ -12,10 +12,10 @@ date, h2o, co2 , dyst = np.loadtxt("/home/antojr/stash/datatxt/gas_light_curve_v
 mri = a['mri 7-pixel'].copy()
 maxes = argrelextrema(mri, np.greater,order=5)
 maxes = maxes[0]
-outt = open("mri_maxes_v1.txt","w")
+outt = open("mri_maxes_v3.txt","w")
 outt.write("index of scan, julian date at scan; mri at these points are local maxima\n")
 for i in range(len(maxes)):
-    outt.write(f"{maxes[i]} {date[maxes[i]]}\n")
+    outt.write(f"{maxes[i]} {date[maxes[i]]} {a['DOY'][maxes[i]]} {a['exposure id'][maxes[i]]}\n")
 outt.close()
 
 fig,ax = plt.subplots()

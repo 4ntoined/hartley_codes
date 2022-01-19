@@ -16,8 +16,9 @@ ap_size = view / a['pixel scale']
 
 sizer = np.array(ap_size,dtype=int)
 rads = sizeToRadius(sizer)
+rads = rads.astype(int)
 
-outt = open("apertureSizes_new.txt","w")
+outt = open("apertureSizes.txt","w")
 outt.write("jd, aperture size, radius #for a 150km view\n")
 for i in range(len(sizer)):
     outt.write(f"{a['julian date'][i]} {sizer[i]} {rads[i]}\n")

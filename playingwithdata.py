@@ -13,15 +13,16 @@ coords_num = np.loadtxt("/home/antojr/stash/datatxt/ir_coords.txt",dtype=float,u
 coords_eid = np.loadtxt("/home/antojr/stash/datatxt/ir_coords.txt",dtype=str,usecols=(1))
 mri_dat = np.loadtxt("/home/antojr/stash/datatxt/mri_interpolated.txt",dtype=float,skiprows=1)
 loc_dat = np.loadtxt("/home/antojr/stash/datatxt/nucleus_location_v3.txt",dtype=float)
+aper = np.loadtxt("/home/antojr/stash/datatxt/apertureSizes.txt",dtype=float,skiprows=1)
 #for each scan there is:
 #julian date, smooth temp, dark level, best fit level, exposure time, doy, exposure id, outlier flag,
 #filename, long date (skip), ir_coords
 
-typex = np.dtype([('julian date','f8'),('DOY','i4'),('exposure id','U8'),('temperature','f8'), ('dark level','f8'),('dark best fit','f8'),('x-nucleus','f8'), ('y-nucleus','f8'), ('pixel scale','f8'), ('comet dist','f8'), ('mri 3-pixel','f8'),('mri 7-pixel','f8'),('mri 12-pixel','f8'),('mri 20-pixel','f8'), ('exposure time','f8'),('outlier flag','?'),('filename','U26')])
+typex = np.dtype([('julian date','f8'),('DOY','i4'),('exposure id','U8'),('temperature','f8'), ('dark level','f8'),('dark best fit','f8'),('x-nucleus','f8'), ('y-nucleus','f8'), ('pixel scale','f8'), ('comet dist','f8'), ('aperture radius','i4'), ('aperture size','i4'), ('mri 3-pixel','f8'),('mri 7-pixel','f8'),('mri 12-pixel','f8'),('mri 20-pixel','f8'), ('exposure time','f8'),('outlier flag','?'),('filename','U26')])
 
 dats = []
 for i in range(len(dark_tem)):
-    dats.append(( dark_tem[i,0] , int(dark_tem[i,5]), dark_str[i], dark_tem[i,1], dark_tem[i,2], dark_tem[i,3] , loc_dat[i,1], loc_dat[i,2], scan_flo[i,4], scan_flo[i,5], mri_dat[i,0], mri_dat[i,1],mri_dat[i,2],mri_dat[i,3], dark_tem[i,4] , dark_tem[i,6], scan_str[i,0]))
+    dats.append(( dark_tem[i,0] , int(dark_tem[i,5]), dark_str[i], dark_tem[i,1], dark_tem[i,2], dark_tem[i,3] , loc_dat[i,1], loc_dat[i,2], scan_flo[i,4], scan_flo[i,5], aper[i,2], aper[i,1], mri_dat[i,0], mri_dat[i,1],mri_dat[i,2],mri_dat[i,3], dark_tem[i,4] , dark_tem[i,6], scan_str[i,0]))
     pass
 a = np.array( dats, dtype = typex )
 
