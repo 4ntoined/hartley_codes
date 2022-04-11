@@ -11,16 +11,16 @@ from temperature_timeline import ttimeline
 
 timer = interp1d(ttimeline[:,0],ttimeline[:,1],kind="linear", bounds_error=False)
 
-## name // mid-observation time // exposure id // DOY // date // optical-bench temp // exposure time,probably in milliseconds
-sev_dat = np.loadtxt("seven.dat", dtype=object,skiprows=1)
+## name // mid-observation time // exposure id // DOY // date // optical-bench temp // exposure time,probably in milliseconds // pixel scale // cometdist
+sev_dat = np.loadtxt("/home/antojr/stash/datatxt/seven_v2.txt", dtype=object,skiprows=1)
 #sev_means = fits.open("darkmeans_7.fit")
-sev_means2 = fits.open("darkmeansv2_7.fit")
-eig_dat = np.loadtxt("eight.dat", dtype=object,skiprows=1)
+sev_means2 = fits.open("/home/antojr/stash/darkmeansv2_7.fit")
+eig_dat = np.loadtxt("/home/antojr/stash/datatxt/eight_v2.txt", dtype=object,skiprows=1)
 #eig_means = fits.open("darkmeans_8.fit")
-eig_means2 = fits.open("darkmeansv2_8.fit")
-twe_dat = np.loadtxt("twleve.dat", dtype=object,skiprows=1)
+eig_means2 = fits.open("/home/antojr/stash/darkmeansv2_8.fit")
+twe_dat = np.loadtxt("/home/antojr/stash/datatxt/twelve_v2.txt", dtype=object,skiprows=1)
 #twe_means = fits.open("darkmeans_12.fit")
-twe_means2 = fits.open("darkmeansv2_12.fit")
+twe_means2 = fits.open("/home/antojr/stash/darkmeansv2_12.fit")
 ##
 """
 pot = [[float(sev_dat[i,5]),sev_means[0].data[i]/7000.33,sev_means2[0].data[i]/7000.33] for i in range(len(sev_dat))]
@@ -31,6 +31,9 @@ pot2=np.array(pot2)
 pot3=np.array(pot3)
 """
 ###
+#t = jd of observation
+#x = temp of instrument at t
+#y = darklevel per exposure time ms
 p1_t = [float(sev_dat[i,1]) for i in range(len(sev_dat))]
 p1_x = timer(p1_t)
 p1_y = sev_means2[0].data/7000.33
@@ -63,13 +66,13 @@ bestfit_2 = poly.Polynomial.fit(p2_x, p2_y, deg=1)  #make this best fit line
 best2_b,best2_m = bestfit_2.convert().coef          #extract the coefficients on t^0 and t^1
 best2_b -= .003                                     #using this slope to judge outliers
 print("pink line: ",best2_b,best2_m)
-fit2_x = np.linspace(136.6,137.3,500)               #temperature domain to use for best fit lines
+fit2_x = np.linspace(136.667,137.3,500)               #temperature domain to use for best fit lines
 fit2_y = fit2_x*best2_m + best2_b                   #best fit line
 
 fitline = interp1d(fit2_x,fit2_y,kind='linear',bounds_error=False)     #interpolating, to make it behave like a function (not just a list of values along this line)
 
 #file to associate each scan with a smooth temp and a dark level
-out=open("dark_temp.dat","w")
+out=open("dark_temp_vx.dat","w")
 out.write("julian date, mid-obs // temperature, K (smooth) // dark level // best fit level // exposure time // doy // exposure id // outlier flag\n")
 #lets go sevens?
 counting_weirds = 0
@@ -135,23 +138,23 @@ plt.show()
 fig,ax = plt.subplots()
 fig.dpi=120
 fig.figsize=(10,6)
-#ax.scatter(p1_x,p1_y,color="blue",s=1,label="7s")
+ax.scatter(p1_x,p1_y,color="blue",s=1,label="7s")
 #plt.show()
-#ax.scatter(p2_x,p2_y,color="red",s=1,label="8s")
+ax.scatter(p2_x,p2_y,color="red",s=1,label="8s")
 #plt.show()
-#ax.scatter(p3_x,p3_y,color="green",s=1,label="12s")
+ax.scatter(p3_x,p3_y,color="green",s=1,label="12s")
 ax.scatter(p4_x,p4_y,color="royalblue",s=1,label="all the cool ones")
 #ax.scatter( (136.9163578069979),(0.5875101089477539 ),color="black",s=6,label="310.4100011")
 #ax.scatter( (136.84565635327576),(0.5875728726387024 ),color="orange",s=6,label="310.4100009")
 #ax.scatter( (136.8459080135857 ),(0.5874354839324951 ),color="darkred",s=6,label="310.4100013")
 ax.plot(fit_x,fit_y,color="limegreen",label=f"fit, b= {b4}, m= {m4}")
-#ax.plot(fit2_x,fit2_y,color="pink")
+ax.plot(fit2_x,fit2_y,color="pink")
 
 #
 #ax.set_xlim(136.6,137.2)
 #ax.set_ylim(0.57,0.62)
-ax.legend(loc="best")
+#ax.legend(loc="best")
 ax.set_title("dark vs temperature")
 ax.set_xlabel("temp, K (smoothed)")
-ax.set_ylabel("last frame mean/exptime (data/millisecond)")
+ax.set_ylabel("last frame mean/exptime (DN/ms)")
 plt.show()

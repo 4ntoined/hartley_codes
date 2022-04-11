@@ -52,4 +52,10 @@ def resistant_mean(data, cut):
         sigma = np.nan
         num_rej = np.nan
     return mean, sigma, num_rej
+a,b,c = resistant_mean(np.array([1.,np.nan,2.,100.,1.5]),2.5)
+if a==1.5:
+    print("test worked")
+else:
+    print("uhhh")
+
 

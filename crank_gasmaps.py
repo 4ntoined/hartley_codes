@@ -10,7 +10,7 @@ from scipy.interpolate import interp1d
 #import matplotlib.pyplot as plt
 
 def findEmissions(wavey):
-    global h1,h2,c1,c2
+    global h1,h2,c1,c2,d1,d2
     ############  h2o  ###############
     #short
     h2oshort2 = int(np.argwhere(wavey>=h1)[0])                  #finds all indeces exceeding the target, grabs the shortest one
@@ -67,7 +67,7 @@ def make_gasmaps(pathToScanDirectory):
     wavesf.close()
     ysize = dat.shape[1] #frames in one (1) scan ~16,32,etc
     xsize = dat.shape[2] #pixels in one (1) frame ~256
-    outcube = np.ones((3,ysize,xsize),dtype=float) #("cubes/waterPlusMaps_prototype1.fit")
+    outcube = np.ones((3,ysize,xsize),dtype=float)
     for xx in range(xsize): #for each pixel in the x
         for yy in range(ysize): #take a pixel in the y
             pixelx,pixely = xx, yy #add 1 to get ds9 coordinates
