@@ -7,6 +7,7 @@ import os
 import numpy as np
 import astropy.io.fits as fits
 from scipy.interpolate import interp1d
+from resistant_mean_nan import resistant_mean
 #import matplotlib.pyplot as plt
 
 def findEmissions(wavey):
@@ -57,8 +58,8 @@ def findEmissions(wavey):
     else:
         dlong_i = dlong1
     return [[h2oshort_i,h2olong_i],[co2short_i,co2long_i],[dshort_i,dlong_i]]
-def make_gasmaps(pathToScanDirectory):
-    datf = fits.open(pathToScanDirectory + "/cube_smoothspace_v1.fit") #cube with smooth spectra
+def make_gasmaps(pathToScanDirectory,sigma_cut = 2.5):
+    datf = fits.open(pathToScanDirectory + "/cube_smoothspace_v2.fit") #cube with smooth spectra
     wavesf = fits.open(pathToScanDirectory + "/cube_wave_v1.fit")
     dat_h = datf[0].header
     dat = datf[0].data.copy()
@@ -79,16 +80,8 @@ def make_gasmaps(pathToScanDirectory):
             duss,dusl = emiss[2]
             #############  h2o  ################
             ## level of spec at h2o ends
-            hew1 = np.count_nonzero(~np.isnan( spect[ h2os-10:h2os+1]  ))
-            hew2 = np.count_nonzero(~np.isnan( spect[ h2ol:h2ol+9] ))
-            if hew1 == 0:
-                h2oshort_avg = np.nansum( spect[ h2os-10:h2os+1] ) / 11.
-            else:
-                h2oshort_avg = np.nansum( spect[ h2os-10:h2os+1] ) / float(hew1)
-            if hew2 == 0:
-                h2olong_avg = np.nansum( spect[ h2ol:h2ol+9] ) / 9.
-            else:
-                h2olong_avg = np.nansum( spect[ h2ol:h2ol+9] ) / float(hew2)
+            h2oshort_avg,sig1,num1 = resistant_mean( spect[ h2os-10:h2os+1], sigma_cut )
+            h2olong_avg,sig2,num2 = resistant_mean( spect[ h2ol:h2ol+9], sigma_cut )
             ## continuum of h2o
             wave_h = wavex[h2os:h2ol+1] #wavelength ticks over h2o line
             contin_h = interp1d([h1,h2],[h2oshort_avg,h2olong_avg],kind="linear",bounds_error=False,fill_value="extrapolate") #estimated continuum
@@ -97,16 +90,8 @@ def make_gasmaps(pathToScanDirectory):
             h2o = np.trapz(h2oline,x=wave_h)
             #############  co2  ################
             ## lets go co2
-            cew1 = np.count_nonzero(~np.isnan( spect[co2s-14:co2s+1] ))
-            cew2 = np.count_nonzero(~np.isnan( spect[co2l:co2l+8] ))
-            if cew1 == 0:
-                co2short_avg = np.nansum( spect[co2s-14:co2s+1] ) / 15.
-            else:
-                co2short_avg = np.nansum( spect[co2s-14:co2s+1] ) / float(cew1)
-            if cew2 == 0:
-                co2long_avg = np.nansum( spect[co2l:co2l+8] ) / 8.
-            else:
-                co2long_avg = np.nansum( spect[co2l:co2l+8] ) / float(cew2)
+            co2short_avg,sig3,num3 = resistant_mean( spect[co2s-14:co2s+1], sigma_cut )
+            co2long_avg,sig4,num4 = resistant_mean( spect[co2l:co2l+8], sigma_cut )
             ## co2 continuum
             wave_c = wavex[co2s:co2l+1]
             contin_c = interp1d([c1,c2],[co2short_avg,co2long_avg],kind="linear",bounds_error=False,fill_value="extrapolate")
@@ -122,7 +107,7 @@ def make_gasmaps(pathToScanDirectory):
             pass
         pass
     fitter = fits.PrimaryHDU(outcube,header=dat_h)
-    fitter.writeto(pathToScanDirectory + "/cube_gasmaps_v1.fit")
+    fitter.writeto(pathToScanDirectory + "/cube_gasmaps_v2.fit")
     return
 #what directory to look for cubes?
 d1 = 1.80
@@ -131,11 +116,12 @@ h1 = 2.59
 h2 = 2.77
 c1 = 4.17
 c2 = 4.31
+sigma = 2.5
 q=0
 for paths, dirs, fils in os.walk("/chiron4/antojr/calibrated_ir/"):
     if len(fils) < 1: #should catch the first index where its the parent directory, which has no individual files
         continue #should skip this one and move on to the next with no issu
-    make_gasmaps(paths)
+    make_gasmaps(paths,sigma_cut = sigma)
     q+=1
     if q%160==0:
         print(q)
