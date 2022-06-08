@@ -1,5 +1,8 @@
 #Antoine
 #folding light curve
+#okay so the next step here is to scipy.curvefit some parabola onto these peaks
+#i think it would also be interesting to start comparing these epochs to one another
+
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,15 +10,18 @@ from PyAstronomy.pyasl import foldAt
 from playingwithdata import a
 
 def normalize(data):
-    return (data - np.min(data)) / (np.max(data) - np.min(data))
+    return (data - np.nanmin(data)) / (np.nanmax(data) - np.nanmin(data))
 def boxcar_smooth(data, result_array):
     #result_array should be the same shape as data
-    result_array[1:-1] = np.sum((data[1:-1],data[0:-2],data[2:]),axis=0) / 3.
-    result_array[0] = np.sum((data[0],data[1])) /2.
-    result_array[-1] = np.sum((data[-1],data[-2])) / 2.
+    result_array[1:-1] = np.nansum((data[1:-1],data[0:-2],data[2:]),axis=0) / 3.
+    result_array[0] = np.nansum((data[0],data[1])) /2.
+    result_array[-1] = np.nansum((data[-1],data[-2])) / 2.
     return result_array
     
-date, h2o, co2 , dyst = np.loadtxt("/home/antojr/stash/datatxt/gas_light_curve_v6.txt",dtype=float,unpack=True,skiprows=1)
+#date, h2o, co2 , dyst = np.loadtxt("/home/antojr/stash/datatxt/gas_light_curve_v6.txt",dtype=float,unpack=True,skiprows=1)
+date, h2o, co2 , dyst = np.loadtxt("/home/antojr/stash/datatxt/gas_light_curve_v7_11.txt",dtype=float,unpack=True,skiprows=1)
+#date, h2o, co2 , dyst , flag= np.loadtxt("/home/antojr/stash/datatxt/gascurves_v8_15.txt",dtype=float,unpack=True,skiprows=1)
+#date, h2o, co2 , dyst = np.loadtxt("/home/antojr/stash/datatxt/gas_light_curve_v6_5.txt",dtype=float,unpack=True,skiprows=1)
 maxes, daats, doys, exps = np.loadtxt("/home/antojr/stash/datatxt/mri_maxes_v3.txt",skiprows=1,dtype=object,unpack=True)
 #date, h2o, co2 , dyst = np.loadtxt("/home/antojr/stash/datatxt/gas_light_curve_v5.txt",dtype=float,unpack=True,skiprows=1)
 #peaks of the mri curve
@@ -35,14 +41,14 @@ y1_co2 = co2 * overdist2
 y1_dus = dyst * overdist2
 ### clearing out the zeros ###
 mask = np.ones(len(y1_h2o),dtype=bool)
-mask[np.argwhere(h2o < 1e-10)] = False
+mask[np.argwhere(h2o < 1e-11)] = False
 y1_h2o = y1_h2o[mask]
 date = date[mask]
 y1_co2 = y1_co2[mask]
 y1_dus = y1_dus[mask]
 
 # folding
-peri = 2.3
+peri = 2.301 
 x_foldtimes, epochs = foldAt(date,peri,T0=2455508.0,getEpoch=True)
 epochs = epochs.astype(int)
 
@@ -95,14 +101,17 @@ for j in (Pre,Post): #one plot for pre one for post
     fig.figsize = (8,6)
     fig.dpi = 140
     for i in j:
-        ax.scatter(x_foldtimes[epic_i[i]],normed[i][1,:,0],s=1,color='green',label='CO2')
-        ax.scatter(x_foldtimes[epic_i[i]],normed[i][0,:,0],s=1,color='blue',label='H2O')
-        #ax.scatter(x_foldtimes[epic_i[i]],normed_d[i],s=1,color='red',label='dust')
-    ax.set_xlabel("phase")
-    ax.set_ylabel("radiance, normalized")
+        ax.scatter(x_foldtimes[epic_i[i]],smonorm[i][1,:,0],s=1.,color='green',label='CO2',marker='X')
+        #ax.scatter(x_foldtimes[epic_i[i]],smonorm[i][0,:,0],s=1.,color='blue',label='H2O',marker='P')
+        #ax.scatter(x_foldtimes[epic_i[i]],normed[i][2,:,0],s=,color='red',label='dust')
+    #ax.legend(loc='best')
+    ax.set_xlabel("Phase")
+    ax.set_ylabel("Normalized Flux")
     if j[0]>4.5:
-        ax.set_title("Folded Gas Curves, post-encounter")
+        ax.set_title("Folded Gas Curves, post-encounter, smooth")
+        pass
     else:
-        ax.set_title("Folded Gas Curves, pre-encounter")
+        ax.set_title("Folded Gas Curves, pre-encounter, smooth")
+        pass
     plt.show()
     pass

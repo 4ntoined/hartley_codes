@@ -20,13 +20,14 @@ while 1:
     iexp = input("Exposure ID of scan: ")
     fname = '/chiron4/antojr/calibrated_ir/' + idoy + '.' + iexp
     try:
-        icube=fits.open(fname + '/cube_spatial_final.fit')
-        icube_waves=fits.open(fname + '/cube_wave_final.fit')
-        icube_smo = fits.open(fname+'/cube_smooth_final.fit')
+        icube=fits.open(fname + '/cube_spatial_final_v1.fit')
+        icube_waves=fits.open(fname + '/cube_wave_final_v1.fit')
+        icube_smo = fits.open(fname+'/cube_smooth_final_v2.fit')
     except FileNotFoundError:
         print("\nNot found. Try again")
     else:
         break #exit input loop if cubes are read in okay
+    pass
 
 #cube
 #####################
@@ -64,8 +65,8 @@ ax.plot(xax,spec_1,label="data",color='lightgreen')
 ax.plot(xax,spec_2,label="smooth",color='lightblue')
 ax.vlines((1.8,2.2,2.59,2.77,4.17,4.31),ymin=-.001, ymax=.0012)
 ########
-ax.set_ylim((-.0001,.01))
-ax.set_xlim((1.2,4.8))
+ax.set_ylim((-.0001,.004))
+#ax.set_xlim((1.2,4.8))
 #ax.set_xscale("log")
 #ax.set_yscale("log")
 ax.legend(loc='best')
