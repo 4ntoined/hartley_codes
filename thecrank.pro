@@ -1,12 +1,9 @@
 @bulk_calibrate
 
 pro turn,dark_path,dark_scale
-;so dark path will be a path to the normalized master dark
-;dark_scale really only needs to be the dark level best fit
-;those numbers we already have for every scan so we need only
-;put them in idl form
-;and will need to make connection between a filename
-
+;dark_path = STRING, path to normalized master dark
+;dark_scale = STRING, path to dark vs temp file 
+;
 thefiles = file_search("/chiron5/Sandbox/holt/Hartley2/ir/raw/","*.fit")
 ;reading in the dark data
 openr,1,dark_scale
@@ -14,7 +11,7 @@ darkdat = fltarr(8,1321)
 readf,1,darkdat
 close,1
 ;darkdat[n,*] gives the nth column of dark_temp.dat
-;(jd,temp,darklevel,darkbestfit,exptime,doy,expid(is wrong bc no underscores),outlier flag)
+;(jd,temp,darklevel,darkbestfit,exptime,doy,expid,outlier flag)
 openr,1,"/home/antojr/stash/datatxt/expss.txt"
 exps = strarr(1,1321)
 readf,1,exps
