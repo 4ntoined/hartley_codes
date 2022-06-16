@@ -39,9 +39,10 @@ def rgb(pathToScan,scan_i,plot_it = False,save_plot=False, scaling = 'linear', b
     goku[:,:,1] = green.copy()
     goku[:,:,2] = blue.copy()
     #### should we make a vmin.vmax cut here?
-    amin = 1e-15
+    amin = 0.
     goku[goku<=amin] = amin
-    goku[:,170:,1:3] = np.log10(goku[:,170:,1:3])
+    #goku[:,170:,1:3] = np.log10(goku[:,170:,1:3])
+    goku[:,170:,1:3] = (goku[:,170:,1:3])**0.5
     #goku[:,170:,0] *= -1
     
     #normalize h2o and co2 together ###
@@ -57,6 +58,7 @@ def rgb(pathToScan,scan_i,plot_it = False,save_plot=False, scaling = 'linear', b
     ### cropping antisaturation filter###
     goku = goku[:,170:,:]
     sha = goku.shape
+    goku *= -1
     #print(sha)
     ### plott ###
     ##############
@@ -193,7 +195,7 @@ for i in range(0,1321):
 """
 # for batch plotting
 #"""
-for i in range(883,894,1):
+for i in range(800,801,1):
     centering(directs[i,1],directs[i,0],plot_it=True, grn = True, blu = True, red= True, save_plot=False)
     pass
 #"""
