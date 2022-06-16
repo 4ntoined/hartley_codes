@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as clr
 from playingwithdata import a
 
-def rgb(pathToScan,scan_i,plot_it = False,save_plot=False, blu = False, grn = False, rdd = False):
+def rgb(pathToScan,scan_i,plot_it = False,save_plot=False, scaling = 'linear', blu = False, grn = False, red = False):
     """
     Inputs:
         pathToScan - path to scan directory
@@ -30,19 +30,28 @@ def rgb(pathToScan,scan_i,plot_it = False,save_plot=False, blu = False, grn = Fa
     dat = dat[0].data
     sha = dat.shape
     ### assigning colors ###
-    red = dat[2,:,:] #will be shape = (ysize,xsize).... dust
+    rdd = dat[2,:,:] #will be shape = (ysize,xsize).... dust
     green = dat[1,:,:] # co2
     blue = dat[0,:,:]   #h2o
     ### assembling image, kind of an unnecessary step here
     goku = np.ones((sha[1],sha[2],3))
-    goku[:,:,0] = red.copy() #needs to be [ysize, xsize]
+    goku[:,:,0] = rdd.copy() #needs to be [ysize, xsize]
     goku[:,:,1] = green.copy()
     goku[:,:,2] = blue.copy()
+    #### should we make a vmin.vmax cut here?
+    amin = 1e-15
+    goku[goku<=amin] = amin
+    goku[:,170:,1:3] = np.log10(goku[:,170:,1:3])
+    #goku[:,170:,0] *= -1
+    
     #normalize h2o and co2 together ###
     goku[:,170:,1:3] = normalize(goku[:,170:,1:3])
+    #goku[:,170:,1:3] = np.log10(goku[:,170:,1:3])
     ### scale dust to be on par with gases ###
     dscl = np.nanmean( goku[sha[1]//2, 55:65, 1] ) / np.nanmean( goku[sha[1]//2, 55:65, 0] )
     goku[:,:,0] *= abs(dscl)
+    ### scaling modes, linear, power, exponent, log10
+    
     ### marking nucleus location ###
     goku[yo,xo,:] = 0.0
     ### cropping antisaturation filter###
@@ -55,7 +64,7 @@ def rgb(pathToScan,scan_i,plot_it = False,save_plot=False, blu = False, grn = Fa
     ### figure size###
     figdpi = 120
     ####checking if we're plotting colors separate
-    clrs = np.array([rdd,grn,blu],dtype=int)
+    clrs = np.array([red,grn,blu],dtype=int)
     #print(clrs)
     for colr in list(enumerate(clrs)): #index[0] records color index[1] whether we want it or not
         if colr[1]:
@@ -91,7 +100,7 @@ def rgb(pathToScan,scan_i,plot_it = False,save_plot=False, blu = False, grn = Fa
     plt.close(fig)
     return goku
 
-def centering(pathToScan, scan_i, plot_it = False, save_plot=False, rdd = False, grn = False, blu = False, figdpi = 120):
+def centering(pathToScan, scan_i, plot_it = False, save_plot=False, red = False, grn = False, blu = False, figdpi = 120):
     """
     Inputs: see above
     Returns
@@ -109,7 +118,7 @@ def centering(pathToScan, scan_i, plot_it = False, save_plot=False, rdd = False,
     else:
         bigg[:ysize,:86,:] = imag
     ### plott ###
-    clrs = np.array([rdd,grn,blu],dtype=int)
+    clrs = np.array([red,grn,blu],dtype=int)
     colortags = ('red','grn','blu')
     cmapss = ('Reds','Greens','Blues')
     for colr in list(enumerate(clrs)): #index[0] records color index[1] whether we want it or not
@@ -123,13 +132,12 @@ def centering(pathToScan, scan_i, plot_it = False, save_plot=False, rdd = False,
             else:
                 axc.set_title(f"{a['julian date'][scan_i]:.3f} | {a['DOY'][scan_i]}.{a['exposure id'][scan_i]}")
             if save_plot:
-                plt.savefig(f"/chiron4/antojr/rgb_centered/rgbc_v1_{scan_i:0>4}_{colortags[colr[0]]}.png")
+                plt.savefig(f"/chiron4/antojr/rgb_centered/rgbc_v1_{colortags[colr[0]]}_{scan_i:0>4}.png")
             if plot_it:
                 plt.show()
             plt.close(fig)
         #if none of these are true...
         pass
-
     fig,ax2 = plt.subplots()
     fig.dpi = 120
     ax2.imshow(bigg,origin='lower')
@@ -138,7 +146,7 @@ def centering(pathToScan, scan_i, plot_it = False, save_plot=False, rdd = False,
     else:
         ax2.set_title(f"{a['julian date'][scan_i]:.3f} | {a['DOY'][scan_i]}.{a['exposure id'][scan_i]}")
     if save_plot:
-        plt.savefig(f"/chiron4/antojr/rgb_centered/rgbc_v1_{scan_i:0>4}_rgb.png")
+        plt.savefig(f"/chiron4/antojr/rgb_centered/rgbc_v1_rgb_{scan_i:0>4}.png")
     if plot_it:
         plt.show()
     plt.close(fig)
@@ -147,9 +155,9 @@ def centering(pathToScan, scan_i, plot_it = False, save_plot=False, rdd = False,
 def normalize(data):
     return (data - np.nanmin(data)) / (np.nanmax(data) - np.nanmin(data))
 
-directs = np.loadtxt("/home/antojr/stash/datatxt/directories.txt",dtype=object)
-directs = directs[1:]                       #getting rid of first entry, parent directory
-directs[:,0] = directs[:,0].astype(int) -1    #converting indeces from str to int
+directs = np.loadtxt("/home/antojr/stash/datatxt/directories.txt",dtype=object,skiprows=1)
+#no longer necessary directs = directs[1:]                       #getting rid of first entry, parent directory
+directs[:,0] = directs[:,0].astype(int)    #converting indeces from str to int
 #do = rgb(directs[227,1],directs[227,0],plot_it=True,save_plot=False)
 #rgb("/chiron4/antojr/calibrated_ir/306.4000031",202,plot_it=True)
 """ #testing centering method
@@ -172,22 +180,23 @@ bigs[65-nuke[1][1]:65+ysize[1]-nuke[1][1],90-nuke[1][0]:176-nuke[1][0],:,1] = pa
 #fig.dpi=120
 #ax.imshow(bigs,origin='lower')
 #plt.show()
+### for batch saving with ocassional(sp?) plotting
 """
-for i in range(1230,1231):
+for i in range(0,1321):
     print(i)
     if i%100 == 0:
-        centering(directs[i,1],directs[i,0],save_plot=True,plot_it=True)
+        centering(directs[i,1],directs[i,0],save_plot=True,plot_it=True,red=True,grn=True,blu=True)
     else:
-        centering(directs[i,1],directs[i,0],save_plot=True)
+        centering(directs[i,1],directs[i,0],save_plot=True,red=True,grn=True,blu=True)
     pass
+
 """
-
-#
-
-for i in range(210,220,1):
-    centering(directs[i,1],directs[i,0],plot_it=True, grn = True, blu = True)
+# for batch plotting
+#"""
+for i in range(883,894,1):
+    centering(directs[i,1],directs[i,0],plot_it=True, grn = True, blu = True, red= True, save_plot=False)
     pass
-
+#"""
 #scaling dust down so the level of h2o far from comet
 #dustscaled = dust *scl
 #scl = dustscaled/dust
