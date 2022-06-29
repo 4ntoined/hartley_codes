@@ -2,7 +2,7 @@
 
 pro spacesmooth_crank
 
-fils = file_search('/chiron4/antojr/calibrated_ir/*')
+fils = file_search('/chiron4/antojr/calibrated_ir/314*')
 n_scans = n_elements(fils)
 sig_cut=2.5
 for i=0,n_scans-1 do begin
