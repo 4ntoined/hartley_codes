@@ -2,9 +2,39 @@
 #gonna play around with structured arrays because
 #i think itd be good to store the metadata of each of these scans
 #in a single place for easy access
-
 import numpy as np
 
+def getScanInfo(scan_index,printout=False):
+    global a
+    dat = a[scan_index]
+    lbl = a.dtype.names
+    print("index : " + str(scan_index))
+    for i in range(len(lbl)):
+        print(lbl[i] + " : " + f"{dat[i]}")
+    return
+def jd2index(julian, runinfo= False ):
+    #julian should be precise down to 0.001 for my data
+    global a
+    times = a['julian date'].copy()
+    finder = np.abs(times - julian)
+    closest = np.min(finder)
+    scan_i = np.squeeze( np.argwhere(finder <= closest))
+    #print(scan_i)
+    if runinfo:
+        getScanInfo(scan_i)
+    return scan_i
+def expid2index(doi,xps,runinfo=False):
+    #exposure id given as string
+    #doy doesnt matter
+    days  = a['DOY'].astype(str)
+    exss = a['exposure id'].copy()
+    rdays = days == str(doi)
+    rexps = exss == str(xps)
+    rboth = np.logical_and(rdays,rexps)
+    scan_i = np.squeeze( np.argwhere(rboth)  )
+    if runinfo:
+        getScanInfo(scan_i)
+    return scan_i
 scan_str = np.loadtxt("/home/antojr/stash/datatxt/oozaru3.txt",dtype=str,skiprows=1,usecols=(0,2,4))
 scan_flo = np.loadtxt("/home/antojr/stash/datatxt/oozaru3.txt",dtype=float,skiprows=1,usecols=(1,3,5,6,7,8))
 dark_tem = np.loadtxt("/home/antojr/stash/datatxt/dark_temp_v2.dat",dtype=float,skiprows=1,usecols=(0,1,2,3,4,5,7))
@@ -18,14 +48,12 @@ nsf, dbl, nfr = np.loadtxt("/home/antojr/stash/datatxt/nsflip_doubled.txt",dtype
 #for each scan there is:
 #julian date, smooth temp, dark level, best fit level, exposure time, doy, exposure id, outlier flag,
 #filename, long date (skip), ir_coords
-
 typex = np.dtype([('julian date','f8'),('DOY','i4'),('exposure id','U8'),('temperature','f8'), \
                 ('dark level','f8'),('dark best fit','f8'),('x-nucleus','f8'), ('y-nucleus','f8'), \
                 ('pixel scale','f8'), ('comet dist','f8'), ('aperture radius','i4'), ('aperture size','i4'), \
                 ('mri 3-pixel','f8'),('mri 7-pixel','f8'),('mri 12-pixel','f8'),('mri 20-pixel','f8'), \
                 ('exposure time','f8'),('outlier flag','?'),('doubled flag','?'),('nsflip flag','?'), \
                 ('number frames','i4'), ('filename','U26')])
-
 dats = []
 for i in range(len(dark_tem)):
     dats.append(( dark_tem[i,0] , int(dark_tem[i,5]), dark_str[i], dark_tem[i,1], dark_tem[i,2], \
@@ -34,9 +62,9 @@ for i in range(len(dark_tem)):
                 dark_tem[i,6], dbl[i], nsf[i], nfr[i], scan_str[i,0]))
     pass
 a = np.array( dats, dtype = typex )
-
-
-
+#print( expid2index('314','4200021_',runinfo=True) )
+#getScanInfo(160)
+#print(jd2index(2455500.9267,runinfo=1))
 # we will go through every row
 """
 for i in range(len(coords_num)):
