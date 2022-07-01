@@ -3,7 +3,6 @@
 #i think itd be good to store the metadata of each of these scans
 #in a single place for easy access
 import numpy as np
-
 def getScanInfo(scan_index,printout=False):
     global a
     dat = a[scan_index]
@@ -26,15 +25,94 @@ def jd2index(julian, runinfo= False ):
 def expid2index(doi,xps,runinfo=False):
     #exposure id given as string
     #doy doesnt matter
+    global a
     days  = a['DOY'].astype(str)
     exss = a['exposure id'].copy()
     rdays = days == str(doi)
     rexps = exss == str(xps)
     rboth = np.logical_and(rdays,rexps)
     scan_i = np.squeeze( np.argwhere(rboth)  )
+    if scan_i.size != 1:
+        raise ValueError('No match found.')
     if runinfo:
         getScanInfo(scan_i)
     return scan_i
+#id like to have one do a prompt
+#and another take any input?
+def selector():
+    #this will return the scan index and directory as string
+    scanno = input("Which scan:  ")
+    scan_pieces = scanno.split()
+    if len(scan_pieces) == 1:
+        #fscan = float(scanno)
+        #then this is index, date, or directory
+        ### i was checking for length first but i should see if this a
+        ### a number or a directory path
+        #so
+        try:
+            if int(scanno) <= 1320 and int(scanno) >= 0:
+                #then its an INDEX
+                #do the math
+                scan_i = 0
+                direc = ''
+                return (scan_i, direc)
+            elif float(scanno) >= 2455494.0 and float(scanno) <= 2455519.0:
+                #then its a JULIAN DATE
+                scan_i = 0
+                direc = ''
+                return (scan_i, direc)
+            else:
+                #then its some random number
+                return (-9999, 'bunked')
+        except ValueError:
+            #then it broke the int/float functions, prob non-numerical input
+            print("Detecting date or exposure id tag...")
+        except:
+            #i don't know what went wrong, return error values
+            print("Error unexpected!")
+            return (-9999, 'bunked')
+        #uhhh
+        #then we check for directories, and exp,doy combos
+        #'307.4200021' and  '307 4200024'
+        if len(scanno) >= len( '/chiron4/antojr/calibrated_ir/307.4200012' ):
+            #then this is directory
+            # !!! check for nonsense strings !!! checked !!!
+            #/chiron4/antojr/calibrated_ir/ is 30 long 307.4200021_ is +12 = 42
+            #print("directory")
+            try:
+                direc = scanno
+                doi,exp = scanno[30:].split(".")                #expecting her to break the try block
+                scan_i = expid2index(doi,exp,runinfo=False)     #if above succeeds this is one next to break
+                pass
+            except ValueError:
+                print("You totally bonked it :(")
+                print("If that is a julian date with greater than 41 digits, cool it.")
+                return (-9999, 'bonked')
+            else:
+                print('You produced an unexpcted error! Cool!')
+                return (-9999, 'bonked')
+                #yoooo
+            pass
+        #if string isnt long enough check for index
+        elif int(scanno ) <= 1320 and int(scanno) >= 0:
+            #this is index
+            #print("index given")
+            # !!! so if 
+            scan_i = int(scanno)
+            direc = '/chiron4/antojr/calibrated_ir/' + str(a['DOY'][scan_i]) + a['exposure id'][scan_i]
+            pass
+        elif float(scanno) >= 2455494.0 and float(scanno) <= 2455518.0:
+            #julian date
+            print("julian dategiven")
+            pass
+        else:
+            print("hey, what's the big idea here?")
+    else:
+        #expsure and id
+        print("exposure id given")
+    return scan_i
+
+
 scan_str = np.loadtxt("/home/antojr/stash/datatxt/oozaru3.txt",dtype=str,skiprows=1,usecols=(0,2,4))
 scan_flo = np.loadtxt("/home/antojr/stash/datatxt/oozaru3.txt",dtype=float,skiprows=1,usecols=(1,3,5,6,7,8))
 dark_tem = np.loadtxt("/home/antojr/stash/datatxt/dark_temp_v2.dat",dtype=float,skiprows=1,usecols=(0,1,2,3,4,5,7))
