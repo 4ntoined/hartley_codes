@@ -3,7 +3,7 @@
 #i think itd be good to store the metadata of each of these scans
 #in a single place for easy access
 import numpy as np
-def getScanInfo(scan_index,printout=False):
+def getScanInfo(scan_index):
     global a
     dat = a[scan_index]
     lbl = a.dtype.names
@@ -39,23 +39,25 @@ def expid2index(doi,xps,runinfo=False):
     return scan_i
 #id like to have one do a prompt
 #and another take any input?
-def selector():
+def selector(scanno,runinfo=False):
     #this will return the scan index and directory as string
-    scanno = input("Which scan:  ")
+    #scanno = input("Which scan:  ")
+    #print(int(scanno))
     ### i was checking for length first but i should see if this a
     ### a number or a directory path
     #so
     try:
-        if int(scanno) <= 1320 and int(scanno) >= 0:                        #expecting this to break
+        if int(float(scanno)) <= 1320 and int(float(scanno)) >= 0:                        #expecting this to break
             #then its an INDEX
             #do the math
             scan_i = int(scanno)
-            direc = '/chiron4/antojr/calibrated_ir/' + str(a['DOY'][scan_i]) + a['exposure id'][scan_i]
+            direc = '/chiron4/antojr/calibrated_ir/' + str(a['DOY'][scan_i]) +'.' +  a['exposure id'][scan_i]
+            if runinfo: getScanInfo(scan_i)
             return (scan_i, direc)
         elif float(scanno) >= 2455494.0 and float(scanno) <= 2455519.0:     #this will break?
             #then its a JULIAN DATE
-            scan_i = 0
-            direc = ''
+            scan_i = jd2index(float(scanno),runinfo=runinfo)
+            direc = '/chiron4/antojr/calibrated_ir/' + str(a['DOY'][scan_i]) +'.' +  a['exposure id'][scan_i] 
             return (scan_i, direc)
         else:
             #then its some random number
@@ -63,7 +65,8 @@ def selector():
     except ValueError:
         #then it broke the int/float functions, prob non-numerical input
         #so we'll keep going
-        print("...")
+        #print("...")
+        pass
     except:
         #i don't know what went wrong, return error values
         print("Error unexpected. Cool!")
@@ -80,7 +83,7 @@ def selector():
         try:
             direc = scanno
             doi,exp = scanno[30:].split(".")                #expecting her to break the try block
-            scan_i = expid2index(doi,exp,runinfo=False)     #if above succeeds this is one next to break
+            scan_i = expid2index(doi,exp,runinfo=runinfo)     #if above succeeds this is one next to break
             return (scan_i ,direc)
         except ValueError:
             print("Bonked directory path? :(")
@@ -93,8 +96,8 @@ def selector():
         try:
             #might be nonsense and not 
             doi, exp = scanno.split()
-            scan_i = expid2index(doi,exp,runinfo=False)     #expecting this to break
-            direc = '/chiron4/antojr/calibrated_ir/' + str(a['DOY'][scan_i]) + a['exposure id'][scan_i]
+            scan_i = expid2index(doi,exp,runinfo=runinfo)     #expecting this to break
+            direc = '/chiron4/antojr/calibrated_ir/' + str(a['DOY'][scan_i]) +'.' +  a['exposure id'][scan_i]
             return (scan_i ,direc)
         except ValueError:
             print("BONKED FORMAT...")
@@ -107,6 +110,11 @@ def selector():
             print("or exposure ID like: '307 4200021' or directory path.")
             return (-9999, 'bonked')
     pass
+#first time was so fun im gonna do it again
+def selector_prompt(runinfo=False):
+    #selector with prompt
+    given = input("Which scan: ")
+    return selector(given,runinfo=runinfo)
 scan_str = np.loadtxt("/home/antojr/stash/datatxt/oozaru3.txt",dtype=str,skiprows=1,usecols=(0,2,4))
 scan_flo = np.loadtxt("/home/antojr/stash/datatxt/oozaru3.txt",dtype=float,skiprows=1,usecols=(1,3,5,6,7,8))
 dark_tem = np.loadtxt("/home/antojr/stash/datatxt/dark_temp_v2.dat",dtype=float,skiprows=1,usecols=(0,1,2,3,4,5,7))
