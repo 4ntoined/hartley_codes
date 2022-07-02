@@ -1,9 +1,15 @@
 #Antoine
 #companion to playingwithdat, prob gonna rename to cometdata
-
+#this one is gonna define some basic functions for accessing the mega array from cometmeta
+####################################################################################################################
 import numpy as np #love her
 from cometmeta import a
-
+def selector_tutorial():
+    print("Try the Julian Date:         2455509.525")
+    print("Or the index of the scan:    0-1320")
+    print("Or DOY and Exposure ID like: '307 4200021'")
+    print("Or the directory path:       /chiron4/ant...")
+    return
 def getScanInfo(scan_index):
     global a
     dat = a[scan_index]
@@ -20,12 +26,11 @@ def jd2index(julian, runinfo= False ):
     closest = np.min(finder)
     scan_i = np.squeeze( np.argwhere(finder <= closest))
     #print(scan_i)
-    if runinfo:
-        getScanInfo(scan_i)
-    return scan_i
+    if runinfo:     getScanInfo(scan_i)
+    return int(scan_i)
 def expid2index(doi,xps,runinfo=False):
-    #exposure id given as string
-    #doy doesnt matter
+    #exposure id given either as string or integer
+    #doy given however
     global a
     days  = a['DOY'].astype(str)
     exss = a['exposure id'].copy()
@@ -35,9 +40,10 @@ def expid2index(doi,xps,runinfo=False):
     scan_i = np.squeeze( np.argwhere(rboth)  )
     if scan_i.size < 1:
         raise ValueError('No match found.')
-    if runinfo:
-        getScanInfo(scan_i)
-    return scan_i
+    elif scan_i.size>1:
+        raise ValueError('More than one match???')
+    if runinfo:     getScanInfo(scan_i)
+    return int(scan_i)
 #id like to have one do a prompt
 #and another take any input?
 def selector(scanno,runinfo=False):
@@ -52,17 +58,18 @@ def selector(scanno,runinfo=False):
             #then its an INDEX
             #do the math
             scan_i = int(scanno)
-            direc = '/chiron4/antojr/calibrated_ir/' + str(a['DOY'][scan_i]) +'.' +  a['exposure id'][scan_i]
+            #direc = '/chiron4/antojr/calibrated_ir/' + str(a['DOY'][scan_i]) +'.' +  a['exposure id'][scan_i]
             if runinfo: getScanInfo(scan_i)
-            return (scan_i, direc)
+            return scan_i
         elif float(scanno) >= 2455494.0 and float(scanno) <= 2455519.0:     #this will break?
             #then its a JULIAN DATE
             scan_i = jd2index(float(scanno),runinfo=runinfo)
-            direc = '/chiron4/antojr/calibrated_ir/' + str(a['DOY'][scan_i]) +'.' +  a['exposure id'][scan_i] 
-            return (scan_i, direc)
+            #direc = '/chiron4/antojr/calibrated_ir/' + str(a['DOY'][scan_i]) +'.' +  a['exposure id'][scan_i] 
+            return scan_i
         else:
             #then its some random number
-            return (-9999, 'bunked')
+            selector_tutorial()
+            return -9999
     except ValueError:
         #then it broke the int/float functions, prob non-numerical input
         #so we'll keep going
@@ -71,7 +78,7 @@ def selector(scanno,runinfo=False):
     except:
         #i don't know what went wrong, return error values
         print("Error unexpected. Cool!")
-        return (-9999, 'bunked')
+        return -9999
     #uhhh
     #then we check for directories, and exp,doy combos
     #'307 4200024'
@@ -82,34 +89,33 @@ def selector(scanno,runinfo=False):
         #/chiron4/antojr/calibrated_ir/ is 30 long 307.4200021_ is +12 = 42
         #print("directory")
         try:
-            direc = scanno
+            #direc = scanno
             doi,exp = scanno[30:].split(".")                #expecting her to break the try block
             scan_i = expid2index(doi,exp,runinfo=runinfo)     #if above succeeds this is one next to break
-            return (scan_i ,direc)
+            return scan_i
         except ValueError:
             print("Bonked directory path? :(")
-            return (-9999, 'bonked')
+            selector_tutorial()
+            return -9999
         except:
             print('Error unexpected. Cool!')
-            return (-9999, 'bonked')
+            return -9999
     else:
         #then its an EXPOSURE ID
         try:
             #might be nonsense and not 
             doi, exp = scanno.split()
             scan_i = expid2index(doi,exp,runinfo=runinfo)     #expecting this to break
-            direc = '/chiron4/antojr/calibrated_ir/' + str(a['DOY'][scan_i]) +'.' +  a['exposure id'][scan_i]
-            return (scan_i ,direc)
+            #direc = '/chiron4/antojr/calibrated_ir/' + str(a['DOY'][scan_i]) +'.' +  a['exposure id'][scan_i]
+            return scan_i
         except ValueError:
             print("BONKED FORMAT...")
-            print("try the julian date or index (all digits)...")
-            print("or exposure ID like: '307 4200021' or directory path.")
-            return (-9999, 'bonked')
+            selector_tutorial()
+            return -9999
         except:
             print('Error unexpected. Cool!')
-            print("try the julian date or index (all digits)...")
-            print("or exposure ID like: '307 4200021' or directory path.")
-            return (-9999, 'bonked')
+            selector_tutorial()
+            return -9999
     pass
 #first time was so fun im gonna do it again
 def selector_prompt(runinfo=False):
@@ -117,3 +123,4 @@ def selector_prompt(runinfo=False):
     given = input("Which scan: ")
     return selector(given,runinfo=runinfo)
 pass
+
