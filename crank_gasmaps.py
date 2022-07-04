@@ -86,10 +86,10 @@ def measure_gas(spect, waves, demo=False, resist_mean=True, resist_sig=2.5):
     long_i = (h2o_long_i,co2_long_i)
     ## plotting the endpoints
     if demo:
-        ax1.step( waves[ h2o_shor_i[0]:h2o_shor_i[1] ], spect[ h2o_shor_i[0]:h2o_shor_i[1]], color='purple') #h2o short 
-        ax1.step( waves[ h2o_long_i[0]:h2o_long_i[1] ], spect[ h2o_long_i[0]:h2o_long_i[1]], color='purple') #h2o long
-        ax1.step( waves[ co2_shor_i[0]:co2_shor_i[1] ], spect[ co2_shor_i[0]:co2_shor_i[1]], color='purple') #co2 short
-        ax1.step( waves[ co2_long_i[0]:co2_long_i[1] ], spect[ co2_long_i[0]:co2_long_i[1]], color='purple') #co2 long
+        ax1.step( waves[ h2o_shor_i[0]:h2o_shor_i[1] ], spect[ h2o_shor_i[0]:h2o_shor_i[1]], color='violet') #h2o short 
+        ax1.step( waves[ h2o_long_i[0]:h2o_long_i[1] ], spect[ h2o_long_i[0]:h2o_long_i[1]], color='violet') #h2o long
+        ax1.step( waves[ co2_shor_i[0]:co2_shor_i[1] ], spect[ co2_shor_i[0]:co2_shor_i[1]], color='violet') #co2 short
+        ax1.step( waves[ co2_long_i[0]:co2_long_i[1] ], spect[ co2_long_i[0]:co2_long_i[1]], color='violet') #co2 long
     #wavelengths in the bands
     #this should be automated to find the index of tje median of wavelength in each of the endpoint segments
     #sigh I guess that means I have to do it...
@@ -131,8 +131,11 @@ def measure_gas(spect, waves, demo=False, resist_mean=True, resist_sig=2.5):
     #############  dust  ###############
     wave_d = waves[duss:dusl+1]
     dus = np.trapz( spect[duss:dusl+1], x=wave_d)
+    ########## still plotting #################
     if demo:
-        ax1.set_ylim((-0.0001,0.0015))
+        concern = np.nanmin( np.argwhere(waves > 2.2) )
+        max_spec = np.nanmax( spect[concern:] )
+        ax1.set_ylim((max_spec/-15.,max_spec*1.1))
         ax1.set_xlim((2.2,4.5))
         ax1.set_xlabel("wavelength [$\mu m$]")
         ax1.set_ylabel("radiance [$W/m^2/sr/\mu m$]")
