@@ -12,8 +12,8 @@ import numpy as np
 data_directory = '/home/antojr/stash/datatxt'
 scan_str     = np.loadtxt(data_directory+"/oozaru3.txt",dtype=str,skiprows=1,usecols=(0,2,4))
 scan_flo     = np.loadtxt(data_directory+"/oozaru3.txt",dtype=float,skiprows=1,usecols=(1,3,5,6,7,8))
-dark_tem     = np.loadtxt(data_directory+"/dark_temp_v2.dat",dtype=float,skiprows=1,usecols=(0,1,2,3,4,5,7))
-dark_str     = np.loadtxt(data_directory+"/dark_temp_v2.dat",dtype=str,skiprows=1,usecols=(6))
+dark_tem     = np.loadtxt(data_directory+"/dark_temp_v2.txt",dtype=float,skiprows=1,usecols=(0,1,2,3,4,5,7))
+dark_str     = np.loadtxt(data_directory+"/dark_temp_v2.txt",dtype=str,skiprows=1,usecols=(6))
 coords_num   = np.loadtxt(data_directory+"/ir_coords.txt",dtype=float,usecols=(0,2,3))
 coords_eid   = np.loadtxt(data_directory+"/ir_coords.txt",dtype=str,usecols=(1))
 mri_dat      = np.loadtxt(data_directory+"/mri_interpolated.txt",dtype=float,skiprows=1)

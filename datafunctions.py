@@ -118,9 +118,9 @@ def selector(scanno,runinfo=False):
             return -9999
     pass
 #first time was so fun im gonna do it again
-def selector_prompt(runinfo=False):
+def selector_prompt(runinfo=False, default='2455504.510'):
     #selector with prompt
-    given = input("Which scan: ")
+    given = input("Which scan: ") or default
     return selector(given,runinfo=runinfo)
 pass
 
