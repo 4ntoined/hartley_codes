@@ -9,7 +9,7 @@ from scipy.interpolate import interp1d
 from cometmeta import a
 from datafunctions import selector_prompt, selector
 from resistant_mean_nan import resistant_mean
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 def findEmissions(wavey):
     global h1,h2,c1,c2,d1,d2
     ############  h2o  ###############
@@ -58,7 +58,7 @@ def findEmissions(wavey):
     else:
         dlong_i = dlong1
     return [[h2oshort_i,h2olong_i],[co2short_i,co2long_i],[dshort_i,dlong_i]]
-def measure_gas(spect,waves):
+def measure_gas(spect,waves,demo=False):
     emiss = findEmissions(waves)
     h2os,h2ol = emiss[0]
     co2s,co2l = emiss[1]
@@ -70,6 +70,12 @@ def measure_gas(spect,waves):
     ### and also reduce the number of endpoints used by 4
     #h2oshort_avg,sig1,num1 = resistant_mean( spect[ h2os-10:h2os+1], sigma_cut )   #11 points
     #h2olong_avg,sig2,num2 = resistant_mean( spect[ h2ol:h2ol+9], sigma_cut )       #9 points
+    if demo:
+        fig,ax1 = plt.subplots()
+        fig.dpi=140
+        fig.figsize=(10,5.6)
+        ax1.hlines(0,xmin=0,xmax=5,label='zero',color='k',linewidth=1.)
+        ax1.step(waves,spect,color='red',label='spectrum')              #plotting the spectrum
     #short indices
     h2o_shor_i = (h2os-10, h2os-3)    #short h2o indices
     co2_shor_i = (co2s-10,co2s-3)
@@ -78,6 +84,12 @@ def measure_gas(spect,waves):
     h2o_long_i = (h2ol+4,h2ol+9)
     co2_long_i = (co2l+4, co2l+9)
     long_i = (h2o_long_i,co2_long_i)
+    ## plotting the endpoints
+    if demo:
+        ax1.step( waves[ h2o_shor_i[0]:h2o_shor_i[1] ], spect[ h2o_shor_i[0]:h2o_shor_i[1] ]  ) #h2o short 
+        ax1.step( waves[ h2o_long_i[0]:h2o_long_i[1] ], spect[ h2o_long_i[0]:h2o_long_i[1] ]  ) #h2o long
+        ax1.step( waves[ co2_shor_i[0]:co2_shor_i[1] ], spect[ co2_shor_i[0]:co2_shor_i[1] ]  ) #co2 short
+        ax1.step( waves[ co2_long_i[0]:co2_long_i[1] ], spect[ co2_long_i[0]:co2_long_i[1] ]  ) #co2 long
     #wavelengths in the bands
     #this should be automated to find the index of tje median of wavelength in each of the endpoint segments
     #sigh I guess that means I have to do it...
@@ -106,11 +118,21 @@ def measure_gas(spect,waves):
         contin_line = contin(wavo)
         ## subtract the fabricated continuum 
         gasline = spec - contin_line #h2o emission, with continuum removed
+        if demo:
+            ax1.step(wavo,contin_line,color="orange")
+            ax1.step(wavo,gasline,color='darkblue')
         gas = np.trapz(gasline[7:-7],x=wavo[7:-7])
         two.append(gas)
     #############  dust  ###############
     wave_d = waves[duss:dusl+1]
     dus = np.trapz( spect[duss:dusl+1], x=wave_d)
+    if demo:
+        ax1.set_ylim((-0.0001,0.0015))
+        ax1.set_xlim((2.2,4.5))
+        ax1.set_xlabel("wavelength [$\mu m$]")
+        ax1.set_ylabel("radiance [$W/m^2/sr/\mu m$]")
+        ax1.grid("both")
+        plt.show()
     return (two[0], two[1], dus)
 def make_gasmaps(pathToScanDirectory,sigma_cut = 2.5,saveName='/cube_gasmaps_wild.fit',inspec='/cube_smooth_v1.fit', inwave='/cube_wave_v1.fit'):
     datf = fits.open(pathToScanDirectory + inspec) #cube with smooth spectra
@@ -149,22 +171,20 @@ sigma = 2.5
 #directs[:,0] = directs[:,0].astype(int)    #converting indeces from str to int
 #
 if __name__ == "__main__":
-    all_some = input("All? [y/n]: ")
+    all_some = input("All-> yes, selection -> [index range]: ")
     if all_some == 'y' or all_some == 'Y' or all_some == '1' or all_some == 'True' or all_some == 'true' or all_some == 'all' or all_some == 'All':
         sta,sto = 0,1321
     else:
-        dothese = input("Indices like: 250 260 -> ")
-        ab,bb = dothese.split()
+        ab,bb = all_some.split()
         sta,sto = int(ab), int(bb)+1
     prog_counter = 1
-    #sta,sto = 215,216
     for i in range(sta,sto):
-        #print(type(a))
         make_gasmaps( a['directory path'][i]  )
-        if (i-sta)/(sto-sta) >= prog_counter * 0.1 * (sto-sta):
-            print(f'{(i-sta)/(sto-sta)*100.}% complete...')
+        if (i-sta)/(sto-sta) >= prog_counter * 0.1 :
+            print(f'{(i-sta)/(sto-sta)*100.:.3f}% complete...')
             prog_counter+=1
         pass
     print('Okay done. Bye')
 else:
     pass
+
