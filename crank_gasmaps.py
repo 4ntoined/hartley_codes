@@ -58,7 +58,7 @@ def findEmissions(wavey):
     else:
         dlong_i = dlong1
     return [[h2oshort_i,h2olong_i],[co2short_i,co2long_i],[dshort_i,dlong_i]]
-def measure_gas(spect,waves,demo=False):
+def measure_gas(spect, waves, demo=False, resist_mean=True, resist_sig=2.5):
     emiss = findEmissions(waves)
     h2os,h2ol = emiss[0]
     co2s,co2l = emiss[1]
@@ -86,10 +86,10 @@ def measure_gas(spect,waves,demo=False):
     long_i = (h2o_long_i,co2_long_i)
     ## plotting the endpoints
     if demo:
-        ax1.step( waves[ h2o_shor_i[0]:h2o_shor_i[1] ], spect[ h2o_shor_i[0]:h2o_shor_i[1] ]  ) #h2o short 
-        ax1.step( waves[ h2o_long_i[0]:h2o_long_i[1] ], spect[ h2o_long_i[0]:h2o_long_i[1] ]  ) #h2o long
-        ax1.step( waves[ co2_shor_i[0]:co2_shor_i[1] ], spect[ co2_shor_i[0]:co2_shor_i[1] ]  ) #co2 short
-        ax1.step( waves[ co2_long_i[0]:co2_long_i[1] ], spect[ co2_long_i[0]:co2_long_i[1] ]  ) #co2 long
+        ax1.step( waves[ h2o_shor_i[0]:h2o_shor_i[1] ], spect[ h2o_shor_i[0]:h2o_shor_i[1]], color='purple') #h2o short 
+        ax1.step( waves[ h2o_long_i[0]:h2o_long_i[1] ], spect[ h2o_long_i[0]:h2o_long_i[1]], color='purple') #h2o long
+        ax1.step( waves[ co2_shor_i[0]:co2_shor_i[1] ], spect[ co2_shor_i[0]:co2_shor_i[1]], color='purple') #co2 short
+        ax1.step( waves[ co2_long_i[0]:co2_long_i[1] ], spect[ co2_long_i[0]:co2_long_i[1]], color='purple') #co2 long
     #wavelengths in the bands
     #this should be automated to find the index of tje median of wavelength in each of the endpoint segments
     #sigh I guess that means I have to do it...
@@ -109,8 +109,13 @@ def measure_gas(spect,waves,demo=False):
         wavo = wave_2[i]
         spec = spec_2[i]
         ## find average of those points in short and long
-        short_av = np.nanmean( spect[ short[0]:short[1] ] )
-        longs_av = np.nanmean( spect[ longs[0]:longs[1] ] )
+        if resist_mean:
+            #do resistant mean procedure
+            short_av,sig1,num1 = resistant_mean( spect[ short[0]:short[1] ], resist_sig)
+            longs_av,sig2,num2 = resistant_mean( spect[ longs[0]:longs[1] ], resist_sig)
+        else:
+            short_av = np.nanmean( spect[ short[0]:short[1] ] )
+            longs_av = np.nanmean( spect[ longs[0]:longs[1] ] )
         ## create a (linear) interpolation of the continuum from the endoints
         contin = interp1d([wavo[0],wavo[-1]], [short_av, longs_av], \
                             kind="linear", bounds_error=False, fill_value="extrapolate")
@@ -119,7 +124,7 @@ def measure_gas(spect,waves,demo=False):
         ## subtract the fabricated continuum 
         gasline = spec - contin_line #h2o emission, with continuum removed
         if demo:
-            ax1.step(wavo,contin_line,color="orange")
+            ax1.step(wavo,contin_line,color='green')
             ax1.step(wavo,gasline,color='darkblue')
         gas = np.trapz(gasline[7:-7],x=wavo[7:-7])
         two.append(gas)
