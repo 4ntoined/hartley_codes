@@ -70,7 +70,6 @@ while 1:
     pass
 """
 spec_name_1 = '/cube_smooth_v1.fit'
-spec_name_2 = '/cube_spatial_v1.fit'
 wave_name   = '/cube_wave_v1.fit'
 
 ### choosing a scan, by: index [0-1320]?, exposureid+DOY? [xxx yyyyyyy/y], julian date[2455494-2455517], directory
@@ -78,14 +77,10 @@ wave_name   = '/cube_wave_v1.fit'
 scani = selector_prompt()
 direc = a['directory path'][scani]
 
-incube = fits.open(direc + spec_name_1) #cube with smooth spectra
-cube2 = fits.open(direc + spec_name_2) 
-inwaves = fits.open(direc + wave_name)
-#incube.info()
-dat = incube[0].data
-dat2=cube2[0].data
-
-waves = inwaves[0].data
+c1 = fits.open(direc + spec_name_1) #cube with smooth spectra
+cw = fits.open(direc + wave_name)
+da1 = c1[0].data
+wav = cw[0].data
 h1 = 2.59
 h2 = 2.77
 c1 = 4.17

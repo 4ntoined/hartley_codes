@@ -1,15 +1,15 @@
-#Antoine Washington
-#continuum removal
-#fixed nan problem
-#need to add dust
-
+#Antoine
+#this code will take in some amount of cubes, and return as many gasmaps
+#other editorial notes
+##################################################################################################################################
 import os
 import numpy as np
 import astropy.io.fits as fits
 from scipy.interpolate import interp1d
+from cometmeta import a
+from datafunctions import selector_prompt, selector
 from resistant_mean_nan import resistant_mean
 #import matplotlib.pyplot as plt
-
 def findEmissions(wavey):
     global h1,h2,c1,c2,d1,d2
     ############  h2o  ###############
@@ -58,9 +58,63 @@ def findEmissions(wavey):
     else:
         dlong_i = dlong1
     return [[h2oshort_i,h2olong_i],[co2short_i,co2long_i],[dshort_i,dlong_i]]
-def make_gasmaps(pathToScanDirectory,sigma_cut = 2.5):
-    datf = fits.open(pathToScanDirectory + "/cube_smoothspace_v2.fit") #cube with smooth spectra
-    wavesf = fits.open(pathToScanDirectory + "/cube_wave_v1.fit")
+def measure_gas(spect,waves):
+    emiss = findEmissions(waves)
+    h2os,h2ol = emiss[0]
+    co2s,co2l = emiss[1]
+    duss,dusl = emiss[2]
+    #############  h2o  ################
+    ## level of spec at h2o ends
+    ###editing note: apparently this was too many resistant means even though they told me to do this
+    ### so im gonna undo the resistant mean and go back to np.nanmean
+    ### and also reduce the number of endpoints used by 4
+    #h2oshort_avg,sig1,num1 = resistant_mean( spect[ h2os-10:h2os+1], sigma_cut )   #11 points
+    #h2olong_avg,sig2,num2 = resistant_mean( spect[ h2ol:h2ol+9], sigma_cut )       #9 points
+    #short indices
+    h2o_shor_i = (h2os-10, h2os-3)    #short h2o indices
+    co2_shor_i = (co2s-10,co2s-3)
+    shor_i = (h2o_shor_i,co2_shor_i)
+    #long indices
+    h2o_long_i = (h2ol+4,h2ol+9)
+    co2_long_i = (co2l+4, co2l+9)
+    long_i = (h2o_long_i,co2_long_i)
+    #wavelengths in the bands
+    #this should be automated to find the index of tje median of wavelength in each of the endpoint segments
+    #sigh I guess that means I have to do it...
+    wave_h = waves[h2os-7:h2ol+7] #wavelength ticks over h2o line, between endpoints' medians
+    wave_c = waves[co2s-7:co2l+7]
+    wave_2 = (wave_h, wave_c)
+    #spectrum in gas bands
+    spec_h = spect[h2os-7:h2ol+7]
+    spec_c = spect[co2s-7:co2l+7]
+    spec_2 = (spec_h,spec_c)
+    #hold the result
+    two = []
+    for i in (0,1): #we're gonna write once and run twice for h2o and co2
+        ## unloading where the bands/endpoints are
+        short = shor_i[i]
+        longs = long_i[i]
+        wavo = wave_2[i]
+        spec = spec_2[i]
+        ## find average of those points in short and long
+        short_av = np.nanmean( spect[ short[0]:short[1] ] )
+        longs_av = np.nanmean( spect[ longs[0]:longs[1] ] )
+        ## create a (linear) interpolation of the continuum from the endoints
+        contin = interp1d([wavo[0],wavo[-1]], [short_av, longs_av], \
+                            kind="linear", bounds_error=False, fill_value="extrapolate")
+        ## use the interpolation to fabricate the continuum through the gas band
+        contin_line = contin(wavo)
+        ## subtract the fabricated continuum 
+        gasline = spec - contin_line #h2o emission, with continuum removed
+        gas = np.trapz(gasline[7:-7],x=wavo[7:-7])
+        two.append(gas)
+    #############  dust  ###############
+    wave_d = waves[duss:dusl+1]
+    dus = np.trapz( spect[duss:dusl+1], x=wave_d)
+    return (two[0], two[1], dus)
+def make_gasmaps(pathToScanDirectory,sigma_cut = 2.5,saveName='/cube_gasmaps_wild.fit',inspec='/cube_smooth_v1.fit', inwave='/cube_wave_v1.fit'):
+    datf = fits.open(pathToScanDirectory + inspec) #cube with smooth spectra
+    wavesf = fits.open(pathToScanDirectory + inwave)
     dat_h = datf[0].header
     dat = datf[0].data.copy()
     waves = wavesf[0].data.copy()
@@ -74,40 +128,14 @@ def make_gasmaps(pathToScanDirectory,sigma_cut = 2.5):
             pixelx,pixely = xx, yy #add 1 to get ds9 coordinates
             spect = dat[:,pixely,pixelx]
             wavex = waves[:,pixely,pixelx]
-            emiss = findEmissions(wavex)
-            h2os,h2ol = emiss[0]
-            co2s,co2l = emiss[1]
-            duss,dusl = emiss[2]
-            #############  h2o  ################
-            ## level of spec at h2o ends
-            h2oshort_avg,sig1,num1 = resistant_mean( spect[ h2os-10:h2os+1], sigma_cut )
-            h2olong_avg,sig2,num2 = resistant_mean( spect[ h2ol:h2ol+9], sigma_cut )
-            ## continuum of h2o
-            wave_h = wavex[h2os:h2ol+1] #wavelength ticks over h2o line
-            contin_h = interp1d([h1,h2],[h2oshort_avg,h2olong_avg],kind="linear",bounds_error=False,fill_value="extrapolate") #estimated continuum
-            contin_hline = contin_h(wave_h) #continuum evaluated on h2o line wavelength ticks
-            h2oline = spect[h2os:h2ol+1] - contin_hline #h2o emission, with continuum removed
-            h2o = np.trapz(h2oline,x=wave_h)
-            #############  co2  ################
-            ## lets go co2
-            co2short_avg,sig3,num3 = resistant_mean( spect[co2s-14:co2s+1], sigma_cut )
-            co2long_avg,sig4,num4 = resistant_mean( spect[co2l:co2l+8], sigma_cut )
-            ## co2 continuum
-            wave_c = wavex[co2s:co2l+1]
-            contin_c = interp1d([c1,c2],[co2short_avg,co2long_avg],kind="linear",bounds_error=False,fill_value="extrapolate")
-            contin_cline = contin_c(wave_c)
-            co2line = spect[co2s:co2l+1] - contin_cline
-            co2 = np.trapz(co2line,x=wave_c)
-            #############  dust  ###############
-            wave_d = wavex[duss:dusl+1]
-            dusto = np.trapz(spect[duss:dusl+1],x=wave_d)
+            h2o, co2, dust = measure_gas(spect, wavex)
             outcube[0,yy,xx] = h2o
             outcube[1,yy,xx] = co2
-            outcube[2,yy,xx] = dusto
+            outcube[2,yy,xx] = dust
             pass
         pass
     fitter = fits.PrimaryHDU(outcube,header=dat_h)
-    fitter.writeto(pathToScanDirectory + "/cube_gasmaps_v2.fit")
+    fitter.writeto(pathToScanDirectory + saveName)
     return
 #what directory to look for cubes?
 d1 = 1.80
@@ -117,12 +145,26 @@ h2 = 2.77
 c1 = 4.17
 c2 = 4.31
 sigma = 2.5
-q=0
-for paths, dirs, fils in os.walk("/chiron4/antojr/calibrated_ir/"):
-    if len(fils) < 1: #should catch the first index where its the parent directory, which has no individual files
-        continue #should skip this one and move on to the next with no issu
-    make_gasmaps(paths,sigma_cut = sigma)
-    q+=1
-    if q%160==0:
-        print(q)
+#directs = np.loadtxt("/home/antojr/stash/datatxt/directories.txt",dtype=object,skiprows=1)
+#directs[:,0] = directs[:,0].astype(int)    #converting indeces from str to int
+#
+if __name__ == "__main__":
+    all_some = input("All? [y/n]: ")
+    if all_some == 'y' or all_some == 'Y' or all_some == '1' or all_some == 'True' or all_some == 'true' or all_some == 'all' or all_some == 'All':
+        sta,sto = 0,1321
+    else:
+        dothese = input("Indices like: 250 260 -> ")
+        ab,bb = dothese.split()
+        sta,sto = int(ab), int(bb)+1
+    prog_counter = 1
+    #sta,sto = 215,216
+    for i in range(sta,sto):
+        #print(type(a))
+        make_gasmaps( a['directory path'][i]  )
+        if (i-sta)/(sto-sta) >= prog_counter * 0.1 * (sto-sta):
+            print(f'{(i-sta)/(sto-sta)*100.}% complete...')
+            prog_counter+=1
+        pass
+    print('Okay done. Bye')
+else:
     pass

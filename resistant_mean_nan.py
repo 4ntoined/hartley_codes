@@ -1,9 +1,7 @@
 #Antoine
 #gonna try to adapt this nan-proof resistant mean idl code into python
 #wish me luck
-
 import numpy as np
-
 def resistant_mean(data, cut):
     #data's gonna need to be a numpy array
     npts = data.size
@@ -52,10 +50,10 @@ def resistant_mean(data, cut):
         sigma = np.nan
         num_rej = np.nan
     return mean, sigma, num_rej
-a,b,c = resistant_mean(np.array([1.,np.nan,2.,100.,1.5]),2.5)
-if a==1.5:
-    print("test worked")
-else:
-    print("uhhh")
-
+#a,b,c = resistant_mean(np.array([1.,np.nan,2.,100.,1.5]),2.5)
+#if a==1.5:
+#    print("test worked")
+#else:
+#    print("uhhh")
+pass
 

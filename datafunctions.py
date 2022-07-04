@@ -4,12 +4,6 @@
 ####################################################################################################################
 import numpy as np #love her
 from cometmeta import a
-def selector_tutorial():
-    print("Try the Julian Date:         2455509.525")
-    print("Or the index of the scan:    0-1320")
-    print("Or DOY and Exposure ID like: '307 4200021'")
-    print("Or the directory path:       /chiron4/ant...")
-    return
 def getScanInfo(scan_index):
     global a
     dat = a[scan_index]
@@ -122,5 +116,11 @@ def selector_prompt(runinfo=False, default='2455504.510'):
     #selector with prompt
     given = input("Which scan: ") or default
     return selector(given,runinfo=runinfo)
+def selector_tutorial():
+    print("Try the Julian Date:         2455509.525")
+    print("Or the index of the scan:    0-1320")
+    print("Or DOY and Exposure ID like: '307 4200021'")
+    print("Or the directory path:       /chiron4/ant...")
+    return
 pass
 
