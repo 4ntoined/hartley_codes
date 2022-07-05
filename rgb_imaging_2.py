@@ -6,9 +6,10 @@ import astropy.io.fits as fits
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.colors as clr
-from playingwithdata import a
+from cometmeta import a
+from datafunctions import selector, selector_prompt
 
-def rgb(pathToScan,scan_i,plot_it = False,save_plot=False, scaling = 'linear', blu = False, grn = False, red = False):
+def rgb(pathToScan,scan_i,plot_it = False,save_plot=False, scaling = 'linear', vmin_fact=1e-3, blu = False, grn = False, red = False):
     """
     Inputs:
         pathToScan - path to scan directory
@@ -39,15 +40,23 @@ def rgb(pathToScan,scan_i,plot_it = False,save_plot=False, scaling = 'linear', b
     goku[:,:,1] = green.copy()
     goku[:,:,2] = blue.copy()
     #### should we make a vmin.vmax cut here?
-    amin = 0.
-    goku[goku<=amin] = amin
-    #goku[:,170:,1:3] = np.log10(goku[:,170:,1:3])
-    goku[:,170:,1:3] = (goku[:,170:,1:3])**0.5
+    vmin = np.min( vmin_fact * np.nanmean( goku[:,170:,1:3], axis=(0,1) ) )
+    goku[ goku <= vmin ] = vmin
+    if scaling=='linear':
+        pass
+    elif scaling=='log':
+        goku[:,170:,1:3] = np.log10(goku[:,170:,1:3])
+    elif scaling=='root': 
+        goku[:,170:,1:3] = ( goku[:,170:,1:3] )**0.5
+    else:
+        print("Uhh")
+    #the log10
+    #the root sq
+    #to flip the color gradient, will be rgb though
     #goku[:,170:,0] *= -1
-    
-    #normalize h2o and co2 together ###
+
+    ## normalize h2o and co2 together ###
     goku[:,170:,1:3] = normalize(goku[:,170:,1:3])
-    #goku[:,170:,1:3] = np.log10(goku[:,170:,1:3])
     ### scale dust to be on par with gases ###
     dscl = np.nanmean( goku[sha[1]//2, 55:65, 1] ) / np.nanmean( goku[sha[1]//2, 55:65, 0] )
     goku[:,:,0] *= abs(dscl)
@@ -58,7 +67,7 @@ def rgb(pathToScan,scan_i,plot_it = False,save_plot=False, scaling = 'linear', b
     ### cropping antisaturation filter###
     goku = goku[:,170:,:]
     sha = goku.shape
-    goku *= -1
+    #goku *= -1
     #print(sha)
     ### plott ###
     ##############
@@ -102,7 +111,7 @@ def rgb(pathToScan,scan_i,plot_it = False,save_plot=False, scaling = 'linear', b
     plt.close(fig)
     return goku
 
-def centering(pathToScan, scan_i, plot_it = False, save_plot=False, red = False, grn = False, blu = False, figdpi = 120):
+def centering(pathToScan, scan_i, plot_it = False, save_plot=False, red = False, grn = False, blu = False, figdpi = 120, scaling='linear', vmin_fact=1e-3):
     """
     Inputs: see above
     Returns
@@ -110,7 +119,7 @@ def centering(pathToScan, scan_i, plot_it = False, save_plot=False, red = False,
     the image centered [ysize,xsize,colors] in a much larger frame
     """
     xo, yo, ysize = int(a['x-nucleus'][scan_i])-170, int(a['y-nucleus'][scan_i]), a['number frames'][scan_i]
-    imag = rgb(pathToScan, scan_i, plot_it = False, save_plot=False)
+    imag = rgb(pathToScan, scan_i, plot_it = False, save_plot=False, scaling=scaling, vmin_fact=vmin_fact)
     bigg = np.zeros((131,181,3),dtype=float)
     if imag.shape[0] != ysize:
         print(f"got a mismatched size for {scan_i}")
@@ -157,9 +166,23 @@ def centering(pathToScan, scan_i, plot_it = False, save_plot=False, red = False,
 def normalize(data):
     return (data - np.nanmin(data)) / (np.nanmax(data) - np.nanmin(data))
 
-directs = np.loadtxt("/home/antojr/stash/datatxt/directories.txt",dtype=object,skiprows=1)
+
+directs = a['directory path']               #np.loadtxt("/home/antojr/stash/datatxt/directories.txt",dtype=object,skiprows=1)
+#directs[:,0] = directs[:,0].astype(int)    #converting indeces from str to int
+scalor = input('scale: ')
+minimu = input('min value cutoff: ') or '1e-3'
+try:
+    mini = float(minimu)
+except ValueError:
+    print("NO!")
+except:
+    print('Yeah you super broke it.')
+
+for i in range(430,432,1):
+    centering(directs[i],i,plot_it=True, grn = True, blu = True, red= True, save_plot=False, scaling=scalor,vmin_fact=mini)
+    pass
+
 #no longer necessary directs = directs[1:]                       #getting rid of first entry, parent directory
-directs[:,0] = directs[:,0].astype(int)    #converting indeces from str to int
 #do = rgb(directs[227,1],directs[227,0],plot_it=True,save_plot=False)
 #rgb("/chiron4/antojr/calibrated_ir/306.4000031",202,plot_it=True)
 """ #testing centering method
@@ -195,9 +218,6 @@ for i in range(0,1321):
 """
 # for batch plotting
 #"""
-for i in range(800,801,1):
-    centering(directs[i,1],directs[i,0],plot_it=True, grn = True, blu = True, red= True, save_plot=False)
-    pass
 #"""
 #scaling dust down so the level of h2o far from comet
 #dustscaled = dust *scl
