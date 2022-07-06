@@ -245,6 +245,10 @@ xpos = cross_product(ypos,zpos)
 
 ; read in the shape model 
 shape_read_model,'H2',vert,tri,conn,skipline=0
+area = shape_tri_area(vert,tri)
+
+;print,vert[*,100:105]
+;print,size(area)
 
 model_display,vert,conn,xpos,zpos,obspos,sunpos,ncp_ca,axes=axes,sunvec=sunvec,$
    text=desc1,geom_ret=geom_ret,nodisp=nodisp,amv_rd=amv_rd,amv_plot=amv_plot
@@ -341,6 +345,13 @@ sundot[where(sundot lt 0.)] = 0.
 ;multiply the sun angle result with the observer angle result
 seeing = matrix_multiply(obsdot,sundot,/btranspose)
 seeing = diag_matrix(seeing)
+;print,seeing[1000:1010]
+;print,area[1000:1010]
+;; account for area of triangles
+seeing = matrix_multiply(seeing, area,/btranspose)
+seeing = diag_matrix(seeing)
+;print,seeing[1000:1010]
+;print,seeing[1000:1010]/seein
 ;print,size(obsdot)
 ;print,size(sundot)
 ;print,size(seeing)
