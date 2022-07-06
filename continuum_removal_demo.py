@@ -60,7 +60,7 @@ def selectOne():
     go = measure_gas( spec, wave, demo=True )
     return
 
-def plotSeries(series, savfig=False):
+def plotSeries(series, saveNames=[''], savfig=False):
     """
     this will take in a list (iterable) of identifying tokens for scans+pixels
     and return a plot for each one of the entries noted by the iterable
@@ -70,6 +70,7 @@ def plotSeries(series, savfig=False):
     global spec_name_1, wave_name
     for i in range(len(series)):
         scani, pixx, pixy = series[i]
+        pixx, pixy = int(pixx), int(pixy)
         direc = a['directory path'][scani]
         c1 = fits.open(direc + spec_name_1) #cube with smooth spectra
         cw = fits.open(direc + wave_name)
@@ -79,7 +80,7 @@ def plotSeries(series, savfig=False):
         cw.close()
         spec = da1[:,pixy,pixx]
         wave = wav[:,pixy,pixx]
-        go = measure_gas( spec, wave, demo=True, savfig=savfig )
+        go = measure_gas( spec, wave, spectrum_scani= scani, demo=True, saveName = saveNames[i], savfig=savfig, xy=(pixx,pixy))
         #okat so someone has to work out that promised saving feature
     input("Ready to go?")
     return
@@ -98,7 +99,8 @@ if __name__ == '__main__':
            (683, 198, 12), (683, 199, 12), (683,200,12),
            (683, 198, 13), (683, 199, 13), (683, 200, 13)
         ]
-        plotSeries(sero)
+        figs = [ '/home/antojr/codespace/plotting_cr/ruby314_y_' + f'{i:0>3}.png'for i in range(len(sero)) ]
+        plotSeries(sero,saveNames=figs,savfig=True)
     elif option_a == '1':
         #then do the basic thing with the selector prompt
         selectOne()
@@ -106,5 +108,7 @@ if __name__ == '__main__':
         print("only functionality is this message so cool")
     else:
         print('nope')
+else:
+    pass
 
 

@@ -58,7 +58,7 @@ def findEmissions(wavey):
     else:
         dlong_i = dlong1
     return [[h2oshort_i,h2olong_i],[co2short_i,co2long_i],[dshort_i,dlong_i]]
-def measure_gas(spect, waves, demo=False, resist_mean=True, resist_sig=2.5, savfig=False, saveName='continuum_removal_demo_wild.png'):
+def measure_gas(spect, waves, spectrum_scani=0, xy=(-99,-99), demo=False, resist_mean=True, resist_sig=2.5, savfig=False, saveName='continuum_removal_demo_wild.png'):
     emiss = findEmissions(waves)
     h2os,h2ol = emiss[0]
     co2s,co2l = emiss[1]
@@ -135,14 +135,15 @@ def measure_gas(spect, waves, demo=False, resist_mean=True, resist_sig=2.5, savf
     if demo:
         concern = np.nanmin( np.argwhere(waves > 2.2) )
         max_spec = np.nanmax( spect[concern:] )
-        ax1.set_ylim((max_spec/-15.,max_spec*1.1))
+        ax1.set_ylim((max_spec/-8.,max_spec*1.1))
         ax1.set_xlim((2.2,4.5))
         ax1.set_xlabel("wavelength [$\mu m$]")
         ax1.set_ylabel("radiance [$W/m^2/sr/\mu m$]")
+        ax1.set_title(f"{a['julian date'][spectrum_scani]:.3f} | {a['DOY'][spectrum_scani]}.{a['exposure id'][spectrum_scani]} | {xy[0], xy[1]}")
         ax1.grid("both")
         if savfig:
             figdata = {'Software':'crank_gasmaps.py','Author':'Antoine Darius'}
-            plt.savefig(saveName,metadata=figdata)
+            plt.savefig(saveName,dpi=fig.dpi,bbox_inches='tight',metadata=figdata)
         plt.show(block=False)
     return (two[0], two[1], dus)
 def make_gasmaps(pathToScanDirectory,sigma_cut = 2.5,saveName='cube_gasmaps_wild.fit',inspec='cube_smooth_v1.fit', inwave='cube_wave_v1.fit'):
