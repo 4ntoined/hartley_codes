@@ -58,7 +58,7 @@ def findEmissions(wavey):
     else:
         dlong_i = dlong1
     return [[h2oshort_i,h2olong_i],[co2short_i,co2long_i],[dshort_i,dlong_i]]
-def measure_gas(spect, waves, demo=False, resist_mean=True, resist_sig=2.5):
+def measure_gas(spect, waves, demo=False, resist_mean=True, resist_sig=2.5, savfig=False, saveName='continuum_removal_demo_wild.png'):
     emiss = findEmissions(waves)
     h2os,h2ol = emiss[0]
     co2s,co2l = emiss[1]
@@ -140,11 +140,14 @@ def measure_gas(spect, waves, demo=False, resist_mean=True, resist_sig=2.5):
         ax1.set_xlabel("wavelength [$\mu m$]")
         ax1.set_ylabel("radiance [$W/m^2/sr/\mu m$]")
         ax1.grid("both")
-        plt.show()
+        if savfig:
+            figdata = {'Software':'crank_gasmaps.py','Author':'Antoine Darius'}
+            plt.savefig(saveName,metadata=figdata)
+        plt.show(block=False)
     return (two[0], two[1], dus)
-def make_gasmaps(pathToScanDirectory,sigma_cut = 2.5,saveName='/cube_gasmaps_wild.fit',inspec='/cube_smooth_v1.fit', inwave='/cube_wave_v1.fit'):
-    datf = fits.open(pathToScanDirectory + inspec) #cube with smooth spectra
-    wavesf = fits.open(pathToScanDirectory + inwave)
+def make_gasmaps(pathToScanDirectory,sigma_cut = 2.5,saveName='cube_gasmaps_wild.fit',inspec='cube_smooth_v1.fit', inwave='cube_wave_v1.fit'):
+    datf = fits.open(pathToScanDirectory + '/' + inspec) #cube with smooth spectra
+    wavesf = fits.open(pathToScanDirectory + '/' + inwave)
     dat_h = datf[0].header
     dat = datf[0].data.copy()
     waves = wavesf[0].data.copy()
@@ -165,7 +168,7 @@ def make_gasmaps(pathToScanDirectory,sigma_cut = 2.5,saveName='/cube_gasmaps_wil
             pass
         pass
     fitter = fits.PrimaryHDU(outcube,header=dat_h)
-    fitter.writeto(pathToScanDirectory + saveName)
+    fitter.writeto(pathToScanDirectory + '/' + saveName)
     return
 #what directory to look for cubes?
 d1 = 1.80
@@ -187,7 +190,7 @@ if __name__ == "__main__":
         sta,sto = int(ab), int(bb)+1
     prog_counter = 1
     for i in range(sta,sto):
-        make_gasmaps( a['directory path'][i]  )
+        make_gasmaps( a['directory path'][i] , inspec='cube_smooth_final_v5.fit', inwave='cube_wave_final_v1.fit', saveName='cube_gasmaps_final_v5.fit' )
         if (i-sta)/(sto-sta) >= prog_counter * 0.1 :
             print(f'{(i-sta)/(sto-sta)*100.:.3f}% complete...')
             prog_counter+=1
