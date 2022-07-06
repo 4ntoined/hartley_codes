@@ -111,7 +111,7 @@ def rgb(pathToScan,scan_i,plot_it = False,save_plot=False, scaling = 'linear', v
     plt.close(fig)
     return goku
 
-def centering(pathToScan, scan_i, plot_it = False, save_plot=False, red = False, grn = False, blu = False, figdpi = 120, scaling='linear', vmin_fact=1e-3):
+def centering(pathToScan, scan_i, plot_it = False, save_plot=False, save_here='/home/antojr/hartley2/results/', red = False, grn = False, blu = False, figdpi = 120, scaling='linear', vmin_fact=1e-3):
     """
     Inputs: see above
     Returns
@@ -120,12 +120,18 @@ def centering(pathToScan, scan_i, plot_it = False, save_plot=False, red = False,
     """
     xo, yo, ysize = int(a['x-nucleus'][scan_i])-170, int(a['y-nucleus'][scan_i]), a['number frames'][scan_i]
     imag = rgb(pathToScan, scan_i, plot_it = False, save_plot=False, scaling=scaling, vmin_fact=vmin_fact)
-    bigg = np.zeros((131,181,3),dtype=float)
+    #bigg = np.zeros((131,181,3),dtype=float)
+    bigg = np.zeros((93,135,3),dtype=float)
+    print(imag.shape)
     if imag.shape[0] != ysize:
         print(f"got a mismatched size for {scan_i}")
         pass
     elif xo > 0.0:    #only do the centering if there is nuke info
-        bigg[65-yo:65+ysize-yo,90-xo:176-xo,:] = imag
+        #print(42-xo, 42+86-xo)
+        #print(bigg.shape)
+        #print(bigg[43-yo:43+ysize-yo,67-xo:67+86-xo,:].shape)
+        print(xo)
+        bigg[46-yo:46+ysize-yo,67-xo:67+86-xo,:] = imag
     else:
         bigg[:ysize,:86,:] = imag
     ### plott ###
@@ -143,10 +149,12 @@ def centering(pathToScan, scan_i, plot_it = False, save_plot=False, red = False,
             else:
                 axc.set_title(f"{a['julian date'][scan_i]:.3f} | {a['DOY'][scan_i]}.{a['exposure id'][scan_i]}")
             if save_plot:
-                plt.savefig(f"/chiron4/antojr/rgb_centered/rgbc_v1_{colortags[colr[0]]}_{scan_i:0>4}.png")
+                figdat = {'Author':'Antoine Darius','Software':'rgb_imaging_v2.py'}
+                plt.savefig(save_here+ f"rgbc_v2_{colortags[colr[0]]}_{scan_i:0>4}.png",metadata=figdat,bbox_inches='tight',dpi=fig.dpi)
             if plot_it:
-                plt.show()
-            plt.close(fig)
+                plt.show(block=False)
+            #plt.close(fig)
+            pass
         #if none of these are true...
         pass
     fig,ax2 = plt.subplots()
@@ -157,30 +165,63 @@ def centering(pathToScan, scan_i, plot_it = False, save_plot=False, red = False,
     else:
         ax2.set_title(f"{a['julian date'][scan_i]:.3f} | {a['DOY'][scan_i]}.{a['exposure id'][scan_i]}")
     if save_plot:
-        plt.savefig(f"/chiron4/antojr/rgb_centered/rgbc_v1_rgb_{scan_i:0>4}.png")
+        figdat = {'Author':'Antoine Darius','Software':'rgb_imaging_v2.py'}
+        plt.savefig(save_here+ f"rgbc_v2_rgb_{scan_i:0>4}.png",metadata=figdat,bbox_inches='tight',dpi=fig.dpi)
     if plot_it:
-        plt.show()
+        plt.show(block=False)
+    #input('Ready?')
     plt.close(fig)
     return bigg
 
 def normalize(data):
     return (data - np.nanmin(data)) / (np.nanmax(data) - np.nanmin(data))
 
+if __name__ == '__main__':
+    #what to do
+    option_1 = input('What to do? 1-> plot range, 2-> reframe experiment\n: ')
+    if option_1 == '1':
+        #do the basic stuff from before
+        directs = a['directory path']               #np.loadtxt("/home/antojr/stash/datatxt/directories.txt",dtype=object,skiprows=1)
+        #directs[:,0] = directs[:,0].astype(int)    #converting indeces from str to int
+        rangor = input('index range: ')
+        scalor = input('scale: ')
+        minimu = input('min value cutoff: ') or '1e-3'
+        try:
+            mini = float(minimu)
+            sta, sto = rangor.split()
+        except ValueError:
+            print("NO!")
+        except:
+            print('Yeah you super broke it.')
+        pass
+        for i in range(int(sta),int(sto),1):
+            #centering(directs[i],i,plot_it=True, grn = True, blu = True, red= True, save_plot=False, scaling=scalor,vmin_fact=mini)
+            centering(directs[i],i,plot_it=True, grn = False, blu = False, red= False, save_plot=False, scaling=scalor,vmin_fact=mini)
+        pass
+    elif option_1 == '2':
+        #uhhh
 
-directs = a['directory path']               #np.loadtxt("/home/antojr/stash/datatxt/directories.txt",dtype=object,skiprows=1)
-#directs[:,0] = directs[:,0].astype(int)    #converting indeces from str to int
-scalor = input('scale: ')
-minimu = input('min value cutoff: ') or '1e-3'
-try:
-    mini = float(minimu)
-except ValueError:
-    print("NO!")
-except:
-    print('Yeah you super broke it.')
-
-for i in range(430,432,1):
-    centering(directs[i],i,plot_it=True, grn = True, blu = True, red= True, save_plot=False, scaling=scalor,vmin_fact=mini)
+        pass
+    elif option_1 == '3':   
+        #batch create and save the rgb images
+        print("making all the pictures")
+        directs = a['directory path'].copy()
+        for i in range(0,1321):
+            print(i)
+            #if i%100 == 0:
+            #    centering(directs[i],i,save_plot=True,plot_it=True)
+            #else:
+            centering(directs[i],i,save_plot=True,red=True,grn=True,blu=True, save_here = '/chiron4/antojr/rgb_centered/', figdpi=140, scaling='root',vmin_fact=1e-2)
+            pass
+        print('Complete. Quitting...')
+        quit()
+    else:
+        #nothing here
+        pass
+else:
+    #module things?
     pass
+
 
 #no longer necessary directs = directs[1:]                       #getting rid of first entry, parent directory
 #do = rgb(directs[227,1],directs[227,0],plot_it=True,save_plot=False)
