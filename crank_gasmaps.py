@@ -63,6 +63,7 @@ def measure_gas(spect, waves, spectrum_scani=0, xy=(-99,-99), demo=False, resist
     h2os,h2ol = emiss[0]
     co2s,co2l = emiss[1]
     duss,dusl = emiss[2]
+    #print(emiss[0],emiss[1])
     #############  h2o  ################
     ## level of spec at h2o ends
     ###editing note: apparently this was too many resistant means even though they told me to do this
@@ -75,39 +76,48 @@ def measure_gas(spect, waves, spectrum_scani=0, xy=(-99,-99), demo=False, resist
         fig.dpi=140
         fig.figsize=(10,5.6)
         ax1.hlines(0,xmin=0,xmax=5,label='zero',color='k',linewidth=1.)
-        ax1.step(waves,spect,color='red',label='spectrum')              #plotting the spectrum
+        ax1.step(waves,spect,color='violet',label='spectrum')              #plotting the spectrum
+    #okay this is changing one last time
+    #we're gonna go 7,7 for water and 5,5 for CO2
+    #I think Im supposed to back off water the shortward two pixels with the continuum estimation
+    #I need to check my notes
     #short indices
-    h2o_shor_i = (h2os-10, h2os-3)    #short h2o indices
-    co2_shor_i = (co2s-10,co2s-3)
+    h2o_shor_i = (h2os-12, h2os-5)      #short h2o indices, 7 pixel, wider gap
+    co2_shor_i = (co2s-8,co2s-3)       #short co2, 7->5, 
     shor_i = (h2o_shor_i,co2_shor_i)
+    #print()
     #long indices
-    h2o_long_i = (h2ol+4,h2ol+9)
-    co2_long_i = (co2l+4, co2l+9)
+    h2o_long_i = (h2ol+6,h2ol+13)        #long h2o, 5->7 pixel, wider gap
+    co2_long_i = (co2l+4, co2l+9)       #long co2, 5 pixel, only one that's unchanged from v5
     long_i = (h2o_long_i,co2_long_i)
     ## plotting the endpoints
     if demo:
-        ax1.step( waves[ h2o_shor_i[0]:h2o_shor_i[1] ], spect[ h2o_shor_i[0]:h2o_shor_i[1]], color='violet') #h2o short 
-        ax1.step( waves[ h2o_long_i[0]:h2o_long_i[1] ], spect[ h2o_long_i[0]:h2o_long_i[1]], color='violet') #h2o long
-        ax1.step( waves[ co2_shor_i[0]:co2_shor_i[1] ], spect[ co2_shor_i[0]:co2_shor_i[1]], color='violet') #co2 short
-        ax1.step( waves[ co2_long_i[0]:co2_long_i[1] ], spect[ co2_long_i[0]:co2_long_i[1]], color='violet') #co2 long
+        ax1.step( waves[ h2o_shor_i[0]:h2o_shor_i[1] ], spect[ h2o_shor_i[0]:h2o_shor_i[1]], color='darkblue') #h2o short 
+        ax1.step( waves[ h2o_long_i[0]:h2o_long_i[1] ], spect[ h2o_long_i[0]:h2o_long_i[1]], color='darkblue') #h2o long
+        ax1.step( waves[ co2_shor_i[0]:co2_shor_i[1] ], spect[ co2_shor_i[0]:co2_shor_i[1]], color='darkblue') #co2 short
+        ax1.step( waves[ co2_long_i[0]:co2_long_i[1] ], spect[ co2_long_i[0]:co2_long_i[1]], color='darkblue') #co2 long
     #wavelengths in the bands
     #this should be automated to find the index of tje median of wavelength in each of the endpoint segments
     #sigh I guess that means I have to do it...
-    wave_h = waves[h2os-7:h2ol+7] #wavelength ticks over h2o line, between endpoints' medians
-    wave_c = waves[co2s-7:co2l+7]
+    medians = ( (h2os-9,h2ol+10), (co2s-6,co2l+7) )
+    wave_h = waves[medians[0][0]:medians[0][1]] #wavelength ticks over h2o line, between endpoints' medians
+    wave_c = waves[medians[1][0]:medians[1][1]]
     wave_2 = (wave_h, wave_c)
     #spectrum in gas bands
-    spec_h = spect[h2os-7:h2ol+7]
-    spec_c = spect[co2s-7:co2l+7]
+    spec_h = spect[medians[0][0]:medians[0][1]]
+    spec_c = spect[medians[1][0]:medians[1][1]]
     spec_2 = (spec_h,spec_c)
+    noname = ( (9,-10),(6,-7)  )
     #hold the result
     two = []
+    print(spec_h.size)
     for i in (0,1): #we're gonna write once and run twice for h2o and co2
         ## unloading where the bands/endpoints are
         short = shor_i[i]
         longs = long_i[i]
         wavo = wave_2[i]
         spec = spec_2[i]
+        intab = noname[i]
         ## find average of those points in short and long
         if resist_mean:
             #do resistant mean procedure
@@ -125,8 +135,9 @@ def measure_gas(spect, waves, spectrum_scani=0, xy=(-99,-99), demo=False, resist
         gasline = spec - contin_line #h2o emission, with continuum removed
         if demo:
             ax1.step(wavo,contin_line,color='green')
-            ax1.step(wavo,gasline,color='darkblue')
-        gas = np.trapz(gasline[7:-7],x=wavo[7:-7])
+            ax1.step(wavo,gasline,color='red')
+        inta, intb = intab
+        gas = np.trapz(gasline[inta:intb],x=wavo[inta:intb])
         two.append(gas)
     #############  dust  ###############
     wave_d = waves[duss:dusl+1]
@@ -185,13 +196,16 @@ sigma = 2.5
 if __name__ == "__main__":
     all_some = input("All-> yes, selection -> [index range]: ")
     if all_some == 'y' or all_some == 'Y' or all_some == '1' or all_some == 'True' or all_some == 'true' or all_some == 'all' or all_some == 'All':
+        #setting up start and stop to produce all gas maps
         sta,sto = 0,1321
     else:
+        #setting up start and stop to match indices given
         ab,bb = all_some.split()
         sta,sto = int(ab), int(bb)+1
+    #regardless of setup, w start/stop defined, procedure is same
     prog_counter = 1
     for i in range(sta,sto):
-        make_gasmaps( a['directory path'][i] , inspec='cube_smooth_final_v5.fit', inwave='cube_wave_final_v1.fit', saveName='cube_gasmaps_final_v5.fit' )
+        make_gasmaps( a['directory path'][i] , inspec='cube_smooth_final_v5.fit', inwave='cube_wave_final_v1.fit', saveName='cube_gasmaps_final_v6.fit' )
         if (i-sta)/(sto-sta) >= prog_counter * 0.1 :
             print(f'{(i-sta)/(sto-sta)*100.:.3f}% complete...')
             prog_counter+=1

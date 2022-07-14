@@ -57,7 +57,8 @@ def selectOne():
         pixx, pixy = int(pixo[0]),int(pixo[1])
     spec = da1[:,pixy,pixx]
     wave = wav[:,pixy,pixx]
-    go = measure_gas( spec, wave, demo=True )
+    go = measure_gas( spec, wave, spectrum_scani=scani, demo=True, xy=(pixx,pixy))
+    #input('Ready?')
     return
 
 def plotSeries(series, saveNames=[''], savfig=False):
@@ -89,7 +90,7 @@ spec_name_1 = '/cube_smooth_final_v5.fit'
 wave_name   = '/cube_wave_final_v1.fit'
 
 if __name__ == '__main__':
-    option_a = input('Which door? 1->basic, 2-> experiment:\n')
+    option_a = input('Which door? 1-> basic, 2-> experiment-9:\n')
     if option_a == '2':
         #then do the thing for Lori
         #scan i = 683, pixelx is 198, 199, 200 and pixely 12, 11, 13
@@ -99,11 +100,12 @@ if __name__ == '__main__':
            (683, 198, 12), (683, 199, 12), (683,200,12),
            (683, 198, 13), (683, 199, 13), (683, 200, 13)
         ]
-        figs = [ '/home/antojr/codespace/plotting_cr/ruby314_y_' + f'{i:0>3}.png'for i in range(len(sero)) ]
+        figs = [ '/home/antojr/codespace/plotting_cr/ruby314_z_' + f'{i:0>3}.png'for i in range(len(sero)) ]
         plotSeries(sero,saveNames=figs,savfig=True)
     elif option_a == '1':
         #then do the basic thing with the selector prompt
         selectOne()
+        input("Enter anything...")
     elif option_a == '3':
         print("only functionality is this message so cool")
     else:
