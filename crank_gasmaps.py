@@ -110,7 +110,7 @@ def measure_gas(spect, waves, spectrum_scani=0, xy=(-99,-99), demo=False, resist
     noname = ( (9,-10),(6,-7)  )
     #hold the result
     two = []
-    print(spec_h.size)
+    #print(spec_h.size)
     for i in (0,1): #we're gonna write once and run twice for h2o and co2
         ## unloading where the bands/endpoints are
         short = shor_i[i]
@@ -195,7 +195,9 @@ sigma = 2.5
 #
 if __name__ == "__main__":
     all_some = input("All-> yes, selection -> [index range]: ")
-    if all_some == 'y' or all_some == 'Y' or all_some == '1' or all_some == 'True' or all_some == 'true' or all_some == 'all' or all_some == 'All':
+    if all_some == 'y' or all_some == 'Y' or all_some == 'yes' \
+    or all_some == 'Yes' or all_some == '1' or all_some == 'True' \
+    or all_some == 'true' or all_some == 'all' or all_some == 'All':
         #setting up start and stop to produce all gas maps
         sta,sto = 0,1321
     else:
@@ -205,7 +207,7 @@ if __name__ == "__main__":
     #regardless of setup, w start/stop defined, procedure is same
     prog_counter = 1
     for i in range(sta,sto):
-        make_gasmaps( a['directory path'][i] , inspec='cube_smooth_final_v5.fit', inwave='cube_wave_final_v1.fit', saveName='cube_gasmaps_final_v6.fit' )
+        make_gasmaps( a['directory path'][i] , inspec='cube_smooth_v5.fit', inwave='cube_wave_v1.fit', saveName='cube_gasmaps_v6.fit' )
         if (i-sta)/(sto-sta) >= prog_counter * 0.1 :
             print(f'{(i-sta)/(sto-sta)*100.:.3f}% complete...')
             prog_counter+=1
