@@ -6,7 +6,7 @@
 import os
 import numpy as np
 import astropy.io.fits as fits
-from playingwithdata import a
+from cometmeta import a
 #
 def getGases(gasmapARRAY, xnuke, ynuke, apertureradius, s):
     h2o = gasmapARRAY[0,:,:]
@@ -53,10 +53,10 @@ dire.sort(key=sortDires)
 a_diamet=15
 a_radius=(a_diamet-1) // 2
 masterMap = []
-with open("gascurves_v8_15.txt","w") as fil:
+with open("gascurves_v9_15.txt","w") as fil:
     fil.write("jd, h2o, co2, dust, clipped flag // 15x15-pixel aper\n")
     for i in range(len(dire)):
-        mapp = fits.open(dire[i]+"/cube_gasmaps_final_v2.fit")    #gen 2 maps
+        mapp = fits.open(dire[i]+"/cube_gasmaps_final_enhance_v6.fit")    #gen 2 maps
         mapp = mapp[0].data
         h2o , co2, dus, clip_flag = getGases(mapp, xlocs[i], ylocs[i], a_radius, a_diamet) #a['aperture radius'][i] #a['aperture size'][i]
         masterMap.append((h2o,co2,dus,int(clip_flag)))

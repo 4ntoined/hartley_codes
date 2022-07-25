@@ -7,7 +7,8 @@ from playingwithdata import a
 
 #date, h2o, co2 , dyst = np.loadtxt("/home/antojr/stash/datatxt/gas_light_curve_v3fixed3px.txt",dtype=float,unpack=True,skiprows=1)
 #dateA, h2oA, co2A , dystA = np.loadtxt("/home/antojr/stash/datatxt/gas_light_curve_v7_11.txt",dtype=float,unpack=True,skiprows=1)
-dateA, h2oA, co2A , dystA,flag = np.loadtxt("/home/antojr/stash/datatxt/gascurves_v8_15.txt",dtype=float,unpack=True,skiprows=1)
+#dateA, h2oA, co2A , dystA,flag = np.loadtxt("/home/antojr/stash/datatxt/gascurves_v8_15.txt",dtype=float,unpack=True,skiprows=1)
+dateA, h2oA, co2A , dystA,flag = np.loadtxt("/home/antojr/stash/datatxt/gascurves_v9_15.txt",dtype=float,unpack=True,skiprows=1)
 #dateA, h2oA, co2A , dystA,flag = np.loadtxt("/home/antojr/codespace/gascurves_v8_21.txt",dtype=float,unpack=True,skiprows=1)
 #date, h2o, co2 , dyst = np.loadtxt("/home/antojr/stash/datatxt/gas_light_curve_v3150km.txt",dtype=float,unpack=True,skiprows=1)
 maxes, daats, doys, exps = np.loadtxt("/home/antojr/stash/datatxt/mri_maxes_v3.txt",skiprows=1,dtype=object,unpack=True)
@@ -38,14 +39,14 @@ yA_dus = dystA * y_overdist2
 y_mri *= y_overdist2
 
 #for ahearn plot comparison
-ahearn_scale = 1e-10 / 25
-yA_h2o /= ahearn_scale
-yA_co2 /= ahearn_scale
+#ahearn_scale = 1e-10 / 25
+#yA_h2o /= ahearn_scale
+#yA_co2 /= ahearn_scale
 #yA_co2 *= 1.7
 
 doyc = 2455196.5
-d1,d2 = 2455507.5, 2455511.5
-d1,d2 = 2455493.5, 2455519.5
+d1,d2 = 2455505.5, 2455510.5
+#d1,d2 = 2455493.5, 2455519.5
 d1-=doyc
 d2-=doyc
 
@@ -66,12 +67,13 @@ ax.scatter(date-doyc,yA_co2,color="green",label="CO2",s=20.,marker='x',linewidth
 #ax.vlines(date[maxes]-doyc,ymin=0,ymax=5e-5,linewidth=0.7)
 #ax.hlines((1.),xmin=297,xmax=322,label="even",color='k',linewidth=1.,zorder=1)
 ax.set_xlim(d1,d2)
-ax.set_ylim(-10e-12-100,190e-10 / ahearn_scale)
+ax.set_ylim(0,5e-10 )#/ ahearn_scale)
 #ax.set_ylim(0,2.4)
 #ax.legend(loc="best")
 ax.set_xlabel("Day of year")
 #ax.set_ylabel("$CO_2/H_2O$")
 ax.set_ylabel("Flux (arbitrary units)")
 #ax.set_title("Light curve for volatiles")
-#plt.savefig("/home/antojr/lc_ahearn2.png")
-plt.show()
+plt.savefig("gascurves_5days.png",dpi=fig.dpi)
+plt.show(block=True)
+

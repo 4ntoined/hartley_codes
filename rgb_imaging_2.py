@@ -122,7 +122,7 @@ def centering(pathToScan, scan_i, plot_it = False, save_plot=False, save_here='/
     imag = rgb(pathToScan, scan_i, plot_it = False, save_plot=False, scaling=scaling, vmin_fact=vmin_fact)
     #bigg = np.zeros((131,181,3),dtype=float)
     bigg = np.zeros((93,135,3),dtype=float)
-    print(imag.shape)
+    #print(imag.shape)
     if imag.shape[0] != ysize:
         print(f"got a mismatched size for {scan_i}")
         pass
@@ -130,7 +130,7 @@ def centering(pathToScan, scan_i, plot_it = False, save_plot=False, save_here='/
         #print(42-xo, 42+86-xo)
         #print(bigg.shape)
         #print(bigg[43-yo:43+ysize-yo,67-xo:67+86-xo,:].shape)
-        print(xo)
+        #print(xo)
         bigg[46-yo:46+ysize-yo,67-xo:67+86-xo,:] = imag
     else:
         bigg[:ysize,:86,:] = imag
@@ -150,7 +150,7 @@ def centering(pathToScan, scan_i, plot_it = False, save_plot=False, save_here='/
                 axc.set_title(f"{a['julian date'][scan_i]:.3f} | {a['DOY'][scan_i]}.{a['exposure id'][scan_i]}")
             if save_plot:
                 figdat = {'Author':'Antoine Darius','Software':'rgb_imaging_v2.py'}
-                plt.savefig(save_here+ f"rgbc_v2_{colortags[colr[0]]}_{scan_i:0>4}.png",metadata=figdat,bbox_inches='tight',dpi=fig.dpi)
+                plt.savefig(save_here+ f"rgbc_v3_{colortags[colr[0]]}_{scan_i:0>4}.png",metadata=figdat,bbox_inches='tight',dpi=fig.dpi)
             if plot_it:
                 plt.show(block=False)
             #plt.close(fig)
@@ -166,11 +166,11 @@ def centering(pathToScan, scan_i, plot_it = False, save_plot=False, save_here='/
         ax2.set_title(f"{a['julian date'][scan_i]:.3f} | {a['DOY'][scan_i]}.{a['exposure id'][scan_i]}")
     if save_plot:
         figdat = {'Author':'Antoine Darius','Software':'rgb_imaging_v2.py'}
-        plt.savefig(save_here+ f"rgbc_v2_rgb_{scan_i:0>4}.png",metadata=figdat,bbox_inches='tight',dpi=fig.dpi)
+        plt.savefig(save_here+ f"rgbc_v3_rgb_{scan_i:0>4}.png",metadata=figdat,bbox_inches='tight',dpi=fig.dpi)
     if plot_it:
         plt.show(block=False)
     #input('Ready?')
-    plt.close(fig)
+    #plt.close(fig)
     return bigg
 
 def normalize(data):
@@ -198,6 +198,9 @@ if __name__ == '__main__':
             #centering(directs[i],i,plot_it=True, grn = True, blu = True, red= True, save_plot=False, scaling=scalor,vmin_fact=mini)
             centering(directs[i],i,plot_it=True, grn = False, blu = False, red= False, save_plot=False, scaling=scalor,vmin_fact=mini)
         pass
+        input('Done.')
+        print('Quitting...')
+        #quit()
     elif option_1 == '2':
         #uhhh
 
@@ -214,7 +217,7 @@ if __name__ == '__main__':
             centering(directs[i],i,save_plot=True,red=True,grn=True,blu=True, save_here = '/chiron4/antojr/rgb_centered/', figdpi=140, scaling='root',vmin_fact=1e-2)
             pass
         print('Complete. Quitting...')
-        quit()
+        #quit()
     else:
         #nothing here
         pass
