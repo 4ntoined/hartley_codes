@@ -6,6 +6,7 @@ import astropy.io.fits as fits
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.colors as clr
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from cometmeta import a
 from datafunctions import selector, selector_prompt
 
@@ -27,7 +28,7 @@ def rgb(pathToScan,scan_i,plot_it = False,save_plot=False, scaling = 'linear', v
     """
     ### nucleus location ###
     xo, yo = int(a['x-nucleus'][scan_i]), int(a['y-nucleus'][scan_i])
-    dat = fits.open(pathToScan + "/cube_gasmaps_final_v2.fit")
+    dat = fits.open(pathToScan + "/cube_gasmaps_final_enhance_v6.fit")
     dat = dat[0].data
     sha = dat.shape
     ### assigning colors ###
@@ -135,6 +136,7 @@ def centering(pathToScan, scan_i, plot_it = False, save_plot=False, save_here='/
     else:
         bigg[:ysize,:86,:] = imag
     ### plott ###
+    ## plotting the colors ##
     clrs = np.array([red,grn,blu],dtype=int)
     colortags = ('red','grn','blu')
     cmapss = ('Reds','Greens','Blues')
@@ -143,7 +145,10 @@ def centering(pathToScan, scan_i, plot_it = False, save_plot=False, save_here='/
             #make a figure for that color
             fig,axc = plt.subplots()
             fig.dpi = figdpi
-            axc.imshow(bigg[:,:,colr[0]], cmap= cmapss[colr[0]], origin = 'lower')
+            plo = axc.imshow(bigg[:,:,colr[0]], cmap= cmapss[colr[0]], origin = 'lower')
+            divider = make_axes_locatable(axc)
+            caxx = divider.append_axes("right",size="5%",pad=0.1)
+            plt.colorbar(plo,cax=caxx)
             if xo <= 0.0 or yo ==0.0:
                 axc.set_title(f"{a['julian date'][scan_i]:.3f} | {a['DOY'][scan_i]}.{a['exposure id'][scan_i]} | no nucleus")
             else:
@@ -157,6 +162,7 @@ def centering(pathToScan, scan_i, plot_it = False, save_plot=False, save_here='/
             pass
         #if none of these are true...
         pass
+    ## plotting the whole shebang ##
     fig,ax2 = plt.subplots()
     fig.dpi = 120
     ax2.imshow(bigg,origin='lower')
@@ -196,7 +202,7 @@ if __name__ == '__main__':
         pass
         for i in range(int(sta),int(sto),1):
             #centering(directs[i],i,plot_it=True, grn = True, blu = True, red= True, save_plot=False, scaling=scalor,vmin_fact=mini)
-            centering(directs[i],i,plot_it=True, grn = False, blu = False, red= False, save_plot=False, scaling=scalor,vmin_fact=mini)
+            centering(directs[i],i,plot_it=True, grn = True, blu = True, red= False, save_plot=False, scaling=scalor,vmin_fact=mini)
         pass
         input('Done.')
         print('Quitting...')
