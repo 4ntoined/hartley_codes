@@ -1,3 +1,5 @@
+@shape_ll2xyz
+
 function lonlat2xyz,lond,latd,unit=unit
 ;for now give coords in degrees [longitide, latitude]
 conversion = !dpi/180.0
@@ -18,6 +20,49 @@ endif
 ans = [xx,yy,zz]
 return,ans
 end
+
+function targetBody,vertex_xyz,target_ll
+; given a vertex in cartesian coords, see if it is close to a target lat long
+; take the target radius to be the vertex radius
+; convert both to xyz
+; do a distance check
+; if too distamce, vertex is not on target
+;vlat = vertex_llr[0,*]
+;vlon = vertex_llr[1,*]
+;vrad = vertex_llr[2,*]
+;find radius of vertices w/ xyz
+vrad = sqrt(total(vertex_xyz*vertex_xyz,1))
+;converting target to xyz
+;target_llr = fltarr(3,1)
+target_llr = [target_ll[0],target_ll[1],vrad]
+target_xyz = shape_ll2xyz(target_llr)
+;print,'target:'
+;print,size(target_xyz)
+;print,'vertex:'
+;print,size((vertex_xyz[0,*]-target_xyz[0]))
+vert_target_distance = sqrt( (vertex_xyz[0,*]-target_xyz[0])^2 + $
+	(vertex_xyz[1,*]-target_xyz[1])^2 + (vertex_xyz[2,*]-target_xyz[2])^2  )
+;print,'vtd: '
+;print, size(vert_target_distance)
+return,vert_target_distance
+end
+
+function checkTriVert,vertices,triangs
+
+checkedTri = triangs[0,*]*0
+;checkedTri[i]
+for i=0,n_elements(triangs[0,*])-1 do begin
+vert1 = triangs[0,i]
+vert2 = triangs[1,i]
+vert3 = triangs[2,i]
+d1=where( vertices eq vert1, count1 )
+d2=where( vertices eq vert2, count2 )
+d3=where( vertices eq vert3, count3 )
+if  ((count1 gt 0) or (count2 gt 0) or (count3 gt 0)) then checkedTri[0,i]=1
+endfor
+return,checkedTri
+end
+
 
 pro shapelitness, lumos, jd, h2orient=h2orient, obsradec=radec, earth=earth, $
          ncp_ca=ncp_ca, grid=grid, axes=axes, sunvec=sunvec, amv_plot=amv_plot, $
@@ -245,10 +290,36 @@ xpos = cross_product(ypos,zpos)
 
 ; read in the shape model 
 shape_read_model,'H2',vert,tri,conn,skipline=0
+;get the area of all the plates
 area = shape_tri_area(vert,tri)
+;jet games
+target_lat = 84
+target_lon = 180
+targetll = [target_lat, target_lon]
+;vert_latlon = shape_xyz2ll(vert)
+;vert_target = vert_latlon
+;vert_target[where( (vert_target ) ) ]
+dists = targetBody(vert,targetll) ;bolo is 2 dimensional, but its just 1 column
+;print,dists
+;print,size(bolo)
+;close_to_target = where( logical_and( (bolo),()  ) )
+close_to_target = where( dists lt 0.1 )
+if isa(close_to_target,/array) then no_hits = BOOLEAN(0) else no_hits = BOOLEAN(1)
+print,'no hits? : '+ string(int(no_hits))
+;print,vert_latlon[0,4583:5000]
+;print,size(vert)
+;print,size(vert_latlon)
+;print,conn
+qfix = where(dists eq min(dists))
+if no_hits then close_to_target = make_array(1,1,value=qfix)
+print,close_to_target
+;close_to_target now has indeces of vertices that are important
+;need to check which triangles use those vertices
+;print,tri[*,0:50]
 
-;print,vert[*,100:105]
-;print,size(area)
+goober = checkTriVert(close_to_target,tri)
+checking = where(goober gt 0,count)
+print,count
 
 model_display,vert,conn,xpos,zpos,obspos,sunpos,ncp_ca,axes=axes,sunvec=sunvec,$
    text=desc1,geom_ret=geom_ret,nodisp=nodisp,amv_rd=amv_rd,amv_plot=amv_plot
@@ -364,12 +435,12 @@ lumos = total(seeing)
 if keyword_set(print_mess) then begin
 
 print,"Triangles in the shape model: ",ntri
-print,"ObsPos: ",geom_ret.sub_obs_lon,geom_ret.sub_obs_lat
-print,"SunPos: ",geom_ret.sub_sol_lon,geom_ret.sub_sol_lat
-print,"ObRaDec:",geom_ret.obs_radec
-print,"SunRaDec",geom_ret.sun_radec
-print,"ObsXYZ: ",obsxyz
-print,"SunXYZ: ",sunxyz
+print,"ObsPos:  ",geom_ret.sub_obs_lon,geom_ret.sub_obs_lat
+print,"SunPos:  ",geom_ret.sub_sol_lon,geom_ret.sub_sol_lat
+print,"ObsRaDec:",geom_ret.obs_radec
+print,"SunRaDec:",geom_ret.sun_radec
+print,"ObsXYZ:  ",obsxyz
+print,"SunXYZ:  ",sunxyz
 print,"Shape plates' light to obs: ",obsdot[0:10]
 print,"Sunlight to shape plates  : ",sundot[0:10]
 print,"Brightness of shape plates: "
