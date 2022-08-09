@@ -75,7 +75,58 @@ if __name__ == '__main__':
         else:   #do nothing if input is wrong
             print('bad input')
         pass
-    elif mode == '2':
+    elif mode == '20':
+        #this'll be a bigger analysis run or whatever
+        #i wanna run through all the scans and
+        #somehow conglomerate the data for h2o and for co2 and
+        #keep track of those measures over time ie progression
+        #and I also wanna be able to add up, store, and review the histograms
+        #means, maxx, stan, histogram object?
+        stat_array = np.zeros((2,3,1321),dtype=float)
+        #stat_array = stat_array.astype(object)
+        #meanso = np.nanmean()
+        for i in range( len( a['julian date'] )):
+            gases, headd = unloadCube(i, cubename='cube_gasmaps_final_enhance_v6.fit' )
+            gasclip = gases[:,:,170:].copy()
+            mean = np.nanmean( gasclip,axis=(1,2)) #will be h2omean, co2mean, and dustmean
+            stan = np.nanstd( gasclip, axis=(1,2))
+            maxx = np.nanmax( gasclip, axis=(1,2))
+            hm,cm = ( mean[0], mean[1])
+            hs,cs = ( stan[0], stan[1])
+            hx,cx = ( maxx[0], maxx[1])
+            ## thats 6 i need to fill 8, 2 histograms
+            #bluehist = plt.hist( gasclip[0,:,:].ravel(), bins=350)
+            #greehist = plt.hist( gasclip[1,:,:].ravel(), bins=350)
+            #stat_array[:,:,i] = np.array( [[hm, hs, hx, bluehist], [cm, cs, cx, greehist]],dtype=object)
+            stat_array[:,:,i] = np.array( [[hm, hs, hx], [cm, cs, cx]],dtype=float)
+            pass
+        #really quick I'm just gonna save this information so I dont have to compute it everytime
+        stor = fit.PrimaryHDU(stat_array)
+        stor.writeto('scanstats.fits')
+        #uhh let's plot the mean of h2o over time
+        fig,ax = plt.subplots()
+        fig.figsize=(12,6)
+        fig.dpi=120
+        ax.scatter( a['julian date'], stat_array[0,0,:],marker='+',s=1.3, label='H2O means')
+        ax.scatter( a['julian date'], stat_array[1,0,:],marker='x',s=1., label='CO2 means')
+        ax.hlines(0, xmin=a['julian date'][0], xmax=a['julian date'][-1],color='k',lw=0.8)
+        ax.set_ylim((-0.0002,None))
+        plt.legend()
+        plt.show(block=True)
+        pass
+    elif mode == '3':
+        scanstats = fit.open('/home/antojr/codespace/scanstats.fits')
+        stat_array = scanstats[0].data
+        
+        fig,ax = plt.subplots()
+        fig.figsize=(12,6)
+        fig.dpi=120
+        ax.hlines(0, xmin=a['julian date'][0], xmax=a['julian date'][-1],color='k',lw=0.8)
+        ax.scatter( a['julian date'], stat_array[0,2,:],marker='+',s=1.3, label='H2O means')
+        ax.scatter( a['julian date'], stat_array[1,2,:],marker='x',s=1., label='CO2 means')
+        ax.set_ylim((-0.0,0.0005))
+        plt.legend()
+        plt.show(block=True)
         pass
     else:
         pass
