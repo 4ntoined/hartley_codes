@@ -3,6 +3,7 @@
 #this one is gonna define some basic functions for accessing the mega array from cometmeta
 ####################################################################################################################
 import numpy as np #love her
+from astropy.io import fits
 from cometmeta import a
 def getScanInfo(scan_index):
     global a
@@ -50,15 +51,12 @@ def selector(scanno,runinfo=False):
     try:
         if int(float(scanno)) <= 1320 and int(float(scanno)) >= 0:                        #expecting this to break
             #then its an INDEX
-            #do the math
             scan_i = int(scanno)
-            #direc = '/chiron4/antojr/calibrated_ir/' + str(a['DOY'][scan_i]) +'.' +  a['exposure id'][scan_i]
             if runinfo: getScanInfo(scan_i)
             return scan_i
         elif float(scanno) >= 2455494.0 and float(scanno) <= 2455519.0:     #this will break?
             #then its a JULIAN DATE
             scan_i = jd2index(float(scanno),runinfo=runinfo)
-            #direc = '/chiron4/antojr/calibrated_ir/' + str(a['DOY'][scan_i]) +'.' +  a['exposure id'][scan_i] 
             return scan_i
         else:
             #then its some random number
@@ -66,26 +64,19 @@ def selector(scanno,runinfo=False):
             return -9999
     except ValueError:
         #then it broke the int/float functions, prob non-numerical input
-        #so we'll keep going
-        #print("...")
         pass
     except:
         #i don't know what went wrong, return error values
         print("Error unexpected. Cool!")
         return -9999
-    #uhhh
     #then we check for directories, and exp,doy combos
-    #'307 4200024'
     lsc = len(scanno)
     if lsc >= len( '/chiron4/antojr/calibrated_ir/307.4200012' ):
         #then this is DIRECTORY
-        # !!! check for nonsense strings !!! checked !!!
         #/chiron4/antojr/calibrated_ir/ is 30 long 307.4200021_ is +12 = 42
-        #print("directory")
         try:
-            #direc = scanno
             doi,exp = scanno[30:].split(".")                #expecting her to break the try block
-            scan_i = expid2index(doi,exp,runinfo=runinfo)     #if above succeeds this is one next to break
+            scan_i = expid2index(doi,exp,runinfo=runinfo)   #if above succeeds this is one next to break
             return scan_i
         except ValueError:
             print("Bonked directory path? :(")
@@ -97,10 +88,8 @@ def selector(scanno,runinfo=False):
     else:
         #then its an EXPOSURE ID
         try:
-            #might be nonsense and not 
             doi, exp = scanno.split()
-            scan_i = expid2index(doi,exp,runinfo=runinfo)     #expecting this to break
-            #direc = '/chiron4/antojr/calibrated_ir/' + str(a['DOY'][scan_i]) +'.' +  a['exposure id'][scan_i]
+            scan_i = expid2index(doi,exp,runinfo=runinfo)   #expecting this to break
             return scan_i
         except ValueError:
             print("BONKED FORMAT...")
@@ -116,6 +105,19 @@ def selector_prompt(runinfo=False, default='2455504.510'):
     #selector with prompt
     given = input("Which scan: ") or default
     return selector(given,runinfo=runinfo)
+def unloadCube(scan_index, cubename='', wavename=''):
+    global a
+    cubo = fits.open( a['directory path'][scan_index] + '/' + cubename )
+    dato = cubo[0].data
+    dath = cubo[0].header
+    cubo.close()
+    if wavename: #so that we only unload if a wavename is given
+        cubw = fits.open( a['directory path'][scan_index] + '/' + wavename )
+        wavo = cubw[0].data
+        cubw.close()
+        return (dato, wavo, dath)
+    else:
+        return (dato, dath) 
 def selector_tutorial():
     print("Try the Julian Date:         2455509.525")
     print("Or the index of the scan:    0-1320")
