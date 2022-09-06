@@ -136,6 +136,7 @@ def measure_gas(spect, waves, spectrum_scani=0, xy=(-99,-99), demo=False, resist
         if demo:
             ax1.step(wavo,contin_line,color='green')
             ax1.step(wavo,gasline,color='red')
+            ax1.vlines((h1,h2,c1,c2),ymin=0,ymax=0.0014,color='k')
         inta, intb = intab
         gas = np.trapz(gasline[inta:intb],x=wavo[inta:intb])
         two.append(gas)

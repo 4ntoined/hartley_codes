@@ -122,12 +122,26 @@ if __name__ == '__main__':
         fig.figsize=(12,6)
         fig.dpi=120
         ax.hlines(0, xmin=a['julian date'][0], xmax=a['julian date'][-1],color='k',lw=0.8)
-        ax.scatter( a['julian date'], stat_array[0,2,:],marker='+',s=1.3, label='H2O means')
-        ax.scatter( a['julian date'], stat_array[1,2,:],marker='x',s=1., label='CO2 means')
-        ax.set_ylim((-0.0,0.0005))
+        ax.scatter( a['julian date'], stat_array[0,0,:],marker='+',s=1.3, label='H2O means')
+        ax.scatter( a['julian date'], stat_array[1,0,:],marker='x',s=1., label='CO2 means')
+        ax.set_ylim((-0.00002,0.00005))
         plt.legend()
         plt.show(block=True)
         pass
+    elif mode == '4':
+        #i want to make and plot at will histograms of the gas maps
+        #stacked by day of year
+        histos = []
+        ii = np.arange(298,322,dtype=int)
+        for i in range(len(ii)):
+            batch = ( ii[i] == a['DOY'] )
+            #go the histogram operation
+            gases, headd = unloadCube( list(range(1321))[batch], cubename='cube_gasmaps_final_enhance_v6.fit' )
+            gases[0].shape
+            #plt.hist()
+            #histos.append( histogram_product )
+        #histos will come out with 24 histograms in it?
+
     else:
         pass
     #
