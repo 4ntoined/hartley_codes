@@ -29,7 +29,7 @@ PRO combine_rad_fits_folder, FILE_DIR = file_dir, NS_FLIP = ns_flip
 ;;       account for the scan direction of the spectrometer.
 ;;
 ;; EXAMPLE:
-;;   IDL> combine_fits_folder, FILE_DIR = '~atonjr/small_bodies/DOY_312_Calibrated/', /NS_FLIP
+;;   IDL> combine_fits_folder, FILE_DIR = '~antojr/small_bodies/DOY_312_Calibrated/', /NS_FLIP
 ;;
 ;; PROCEDURES USED (i.e. called directly!):
 ;;   READFITS - Reads a FITS file
@@ -71,8 +71,8 @@ PRO combine_rad_fits_folder, FILE_DIR = file_dir, NS_FLIP = ns_flip
          output_waves = REVERSE(output_waves, 2)
        ENDIF
 ;hey I'm goku
-    data_filename = FILE_DIR + '/cube_spatial_v1.fit'
-    waves_filename = FILE_DIR + '/cube_wave_v1.fit'
+    data_filename = FILE_DIR + '/cube_spatial_v7.fit'
+    waves_filename = FILE_DIR + '/cube_wave_v7.fit'
 
 ;; If we have a north-to-south scan, two reverses must take place. One reverse takes into
 ;; account that IDL plots from the bottom up in a window so the data is flipped to look correct

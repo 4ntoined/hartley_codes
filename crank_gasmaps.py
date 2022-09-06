@@ -208,7 +208,7 @@ if __name__ == "__main__":
     #regardless of setup, w start/stop defined, procedure is same
     prog_counter = 1
     for i in range(sta,sto):
-        make_gasmaps( a['directory path'][i] , inspec='cube_smooth_v5.fit', inwave='cube_wave_v1.fit', saveName='cube_gasmaps_v6.fit' )
+        make_gasmaps( a['directory path'][i] , inspec='cube_smooth_v7.fit', inwave='cube_wave_v7.fit', saveName='cube_gasmaps_v7.fit' )
         if (i-sta)/(sto-sta) >= prog_counter * 0.1 :
             print(f'{(i-sta)/(sto-sta)*100.:.3f}% complete...')
             prog_counter+=1

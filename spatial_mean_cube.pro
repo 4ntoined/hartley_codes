@@ -8,7 +8,7 @@ pro smooth_space,pathToCubeDirectory,sigma_cut,output
 ;cube goes [256,n_frames,512]
 ;sooo I will look at the non-doubled smooth cubes to work with
 ;
-pathy = pathToCubeDirectory + '/cube_gasmaps_final_v5.fit'
+pathy = pathToCubeDirectory + '/cube_gasmaps_final_v7.fit'
 data = readfits(pathy,head,/SILENT)
 xsize = n_elements(data(*,0,0)) ;should always be 256 but i trust not myself nor computers
 ysize = n_elements(data(0,*,0))
@@ -57,7 +57,7 @@ yline = [[yline],[zline]]
 endfor ;for ysize
 newcube = [ newcube,yline ]
 endfor ;for xsize
-writefits,pathToCubeDirectory+'/cube_gasmaps_finalsmooth_v5.fit',newcube,head
+writefits,pathToCubeDirectory+'/cube_gasmaps_final_enhance_v7.fit',newcube,head
 output = newcube
 return
 end
