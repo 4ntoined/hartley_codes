@@ -14,16 +14,15 @@ n_scans = n_elements(jds)
 lights = dblarr(n_scans)
 for i=0,n_scans-1 do begin
 
-shapelitness,ghost,jds[i],h2orient=1,/nodisp
+shapelitness,ghost,jds[i],90,90,h2orient=1,/nodisp
 lights[i] = ghost
-print,'done with ',i
 
 endfor
 ;shapelitness,julian,outter,h2orient=2
 ;lights = string(lights)
 ;openw,2,'litness.txt'
 ;v3 denotes area, v2 no area accouting
-write_csv,'litness_v3_27.txt',lights
+write_csv,'/home/antojr/stash/datatxt/litness_jetsun_+90+90.txt',lights
 ;close,2
 
 ;oh she's over

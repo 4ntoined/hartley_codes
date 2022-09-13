@@ -3,13 +3,43 @@
 ################################################################################################
 
 import numpy as np
-#import 
-from cometmeta import a
+import matplotlib.pyplot as plt
+from astropy.io import fits
 from scipy.interpolate import interp1d
+from cometmeta import a
 from datafunctions import selector,selector_prompt, unloadCube
 from resistant_mean_nan import resistant_mean
 from crank_gasmaps import findEmissions, h1, h2, c1, c2, d1, d2
-
+#
+def selectOne(specname='name',wavename='name'):
+    ### choosing a scan, by: index [0-1320]?, exposureid+DOY? [xxx yyyyyyy/y], julian date[2455494-2455517], directory
+    #direc= input("directory with the smooth cube?: ") or '/chiron4/antojr/calibrated_ir/312.4300015'
+    scani = selector_prompt()
+    direc = a['directory path'][scani]
+    cu1 = fits.open(direc + specname) #cube with smooth spectra
+    cw = fits.open(direc + wavename)
+    da1 = cu1[0].data
+    wav = cw[0].data
+    cu1.close()
+    cw.close()
+    #h1 = 2.59
+    #h2 = 2.77
+    #c1 = 4.17
+    #c2 = 4.31
+    ysize = da1.shape[1] #frames in one (1) scan ~16,32,etc
+    xsize = da1.shape[2] #spatial pixels in one (1) frame ~256
+    nx,ny = int(a['x-nucleus'][scani]), int(a['y-nucleus'][scani])
+    pixo  = input(f'Which pixel? Nucleus-> {nx} {ny}\nx|0-255 y|0-{ysize-1}: ') or (nx, ny)
+    #umm lets plot a spectrum from 307.4000013
+    if type(pixo) == str:
+        pxx, pyy = pixo.split()
+        pixx, pixy = (int(pxx), int(pyy))
+    else:
+        pixx, pixy = int(pixo[0]),int(pixo[1])
+    spec = da1[:,pixy,pixx]
+    wave = wav[:,pixy,pixx]
+    go = measure_gas( spec, wave, spectrum_scani=scani, demo=False, xy=(pixx,pixy))
+    return
 #def, go , etc
 def measure_gas(spect, waves, spectrum_scani=0, xy=(-99,-99), demo=False, resist_mean=True, resist_sig=2.5, savfig=False, saveName='continuum_removal_demo_wild.png'):
     emiss = findEmissions(waves)
@@ -126,7 +156,7 @@ if __name__ == '__main__':
     #integrate results
     scani = selector_prompt()
     dats, wavs, hdr = unloadCube(scani, cubename = 'cube_smooth_final_v5.fit', wavename = 'cube_wave_final_v1.fit')
-    
+    newc, neww, newh = unloadCube(scani, cubename = 'cube_smooth_final_v7.fit', wavename = 'cube_wave_final_v7.fit')
     ysize = dats.shape[1] #frames in one (1) scan ~16,32,etc
     xsize = dats.shape[2] #spatial pixels in one (1) frame ~256
     nx,ny = int(a['x-nucleus'][scani]), int(a['y-nucleus'][scani])
@@ -136,17 +166,61 @@ if __name__ == '__main__':
         pixx, pixy = (int(pxx), int(pyy))
     else:
         pixx, pixy = int(pixo[0]),int(pixo[1])
-    spect = dats[:,pixy,pixx]
-    waves = wavs[:,pixy,pixx]
-    h2o, co2, dus, bands = measure_gas( spect, waves, spectrum_scani = scani, xy = (pixx, pixy) )
-    h2olinep, co2linep = bands
-    print(np.trapz( h2olinep[0], x=h2olinep[1]) )
-    print( np.sum(h2olinep[0]) )
-    print(h2o)
+    dats2 = (newc, dats)
+    wavs2 = (neww, wavs)
+    resu = []
+    for i in (0,1):
+        #I need to get the bands for the 2 cubes in this for loop its down below
+        spect = dats2[i][:,pixy,pixx]
+        waves = wavs2[i][:,pixy,pixx]
+        h2o, co2, dus, bands = measure_gas( spect, waves, spectrum_scani = scani, xy = (pixx, pixy) )
+        h2olinep, co2linep = bands
+        resu.append( (bands, h2o, co2, dus) )
+        pass
     
-
+    #print(np.trapz( h2olinep[0], x=h2olinep[1]) )
+    #print(h2o)
+    #print( np.sum(h2olinep[0]) )
+    #print( np.mean(h2olinep[0]) * ( h2olinep[1][-1] - h2olinep[1][0] )  )
+    #print(h2olinep[1][-1] - h2olinep[1][0])
+    #print(h2olinep[0])
+    #print(h2olinep[1])
+    
+    newstuff = resu[0]
+    oldstuff = resu[1]
+    ### h2o stuff ###
+    new_hband, nhw = newstuff[0][0][0], newstuff[0][0][1]
+    new_hsum = newstuff[1]
+    old_hband, ohw = oldstuff[0][0][0], oldstuff[0][0][1]
+    old_hsum = oldstuff[1]
+    ### old stuff ###
+    new_cband, ncw = newstuff[0][1][0], newstuff[0][1][1]
+    new_csum = newstuff[2]
+    old_cband, ocw = oldstuff[0][1][0], oldstuff[0][1][1]
+    old_csum = oldstuff[2]
+    #
+    fig, ax = plt.subplots()
+    plt.tight_layout
+    fig.dpi=140
+    fig.figsize=(9,6)
+    #
+    ax.step(nhw, new_hband, color='blue', label='new h2o')
+    ax.step(ohw, old_hband, color='purple', label='old h2o')
+    #
+    ax.step(ncw-1.3, new_cband, color='green', label='new co2')
+    ax.step(ocw-1.3, old_cband, color='gold', label='old co2')
+    #
+    ax.hlines(0, xmin=2., xmax= 5., color='k', lw=1.)
+    #
+    ax.legend(loc='best')
+    ax.set_xlabel('wavelength')
+    ax.set_ylabel('Flux')
+    ax.set_title(f"{a['julian date'][scani]:.3f} | {a['DOY'][scani]}.{a['exposure id'][scani]} | {pixx, pixy}")
+    ax.set_xlim((2.57,3.02))
+    #ax.set_ylim()
+    plt.show(block=True)
 else:
     #print('not main')
     pass
-
+#
 

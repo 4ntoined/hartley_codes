@@ -45,10 +45,12 @@ if __name__ == '__main__':
             if doubs[i]:
                 doubl(dires[i],in_fname='/cube_smooth_v7.fit',out_fname='/cube_smooth_final_v7.fit')
                 doubl(dires[i],in_fname='/cube_gasmaps_v7.fit',out_fname='/cube_gasmaps_final_v7.fit')
+                doubl(dires[i],in_fname='/cube_wave_v7.fit',out_fname='/cube_wave_final_v7.fit')
             #copies
             else:
                 fake_doubl(dires[i],in_fname='/cube_smooth_v7.fit',out_fname='/cube_smooth_final_v7.fit')
                 fake_doubl(dires[i],in_fname='/cube_gasmaps_v7.fit',out_fname='/cube_gasmaps_final_v7.fit')
+                fake_doubl(dires[i],in_fname='/cube_wave_v7.fit',out_fname='/cube_wave_final_v7.fit')
             #what else
             #progress counter
             if (i-0)/(1321-0) >= prog_counter * 0.1 :

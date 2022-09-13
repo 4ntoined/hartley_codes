@@ -64,7 +64,7 @@ return,checkedTri
 end
 
 
-pro shapelitness, lumos, jd, h2orient=h2orient, obsradec=radec, earth=earth, $
+pro shapelitness, lumos, jd, jetlat, jetlon, h2orient=h2orient, obsradec=radec, earth=earth, $
          ncp_ca=ncp_ca, grid=grid, axes=axes, sunvec=sunvec, amv_plot=amv_plot, $
          ncp_spice=ncp_spice, print_geom=print_geom,print_mess=print_mess, obs_lat=obs_lat,sun_lat=sun_lat,$
          longax_clk = longax_clk,nodisp=nodisp,sunobs=sunobs,axis_ornt=axis_ornt
@@ -293,8 +293,8 @@ shape_read_model,'H2',vert,tri,conn,skipline=0
 ;get the area of all the plates
 area = shape_tri_area(vert,tri)
 ;jet games
-target_lat = 84
-target_lon = 180
+target_lat = jetlat
+target_lon = jetlon
 targetll = [target_lat, target_lon]
 ;vert_latlon = shape_xyz2ll(vert)
 ;vert_target = vert_latlon
@@ -305,21 +305,21 @@ dists = targetBody(vert,targetll) ;bolo is 2 dimensional, but its just 1 column
 ;close_to_target = where( logical_and( (bolo),()  ) )
 close_to_target = where( dists lt 0.1 )
 if isa(close_to_target,/array) then no_hits = BOOLEAN(0) else no_hits = BOOLEAN(1)
-print,'no hits? : '+ string(int(no_hits))
+;print,'no hits? : '+ string(int(no_hits))
 ;print,vert_latlon[0,4583:5000]
 ;print,size(vert)
 ;print,size(vert_latlon)
 ;print,conn
 qfix = where(dists eq min(dists))
-if no_hits then close_to_target = make_array(1,1,value=qfix)
-print,close_to_target
+if no_hits then close_to_target = make_array(1,1,value=qfix[0])
+;print,close_to_target
 ;close_to_target now has indeces of vertices that are important
 ;need to check which triangles use those vertices
 ;print,tri[*,0:50]
 
-goober = checkTriVert(close_to_target,tri)
-checking = where(goober gt 0,count)
-print,count
+jetflags = checkTriVert(close_to_target,tri)
+checking = where(jetflags gt 0.0, ntrijets)
+;print,'# triangs in jet: '+string(counta)
 
 model_display,vert,conn,xpos,zpos,obspos,sunpos,ncp_ca,axes=axes,sunvec=sunvec,$
    text=desc1,geom_ret=geom_ret,nodisp=nodisp,amv_rd=amv_rd,amv_plot=amv_plot
@@ -414,13 +414,22 @@ sundot = dot_product(sunxyz,vecs)
 obsdot[where(obsdot lt 0.)] = 0.
 sundot[where(sundot lt 0.)] = 0.
 ;multiply the sun angle result with the observer angle result
-seeing = matrix_multiply(obsdot,sundot,/btranspose)
-seeing = diag_matrix(seeing)
+;print,size(obsdot)
+;print,size(sundot)
+;seeing = matrix_multiply(obsdot,sundot,/btranspose)
+;seeing = diag_matrix(seeing)
+seeing = obsdot*sundot
+;print,seeing-obsdot*sundot
 ;print,seeing[1000:1010]
 ;print,area[1000:1010]
 ;; account for area of triangles
-seeing = matrix_multiply(seeing, area,/btranspose)
-seeing = diag_matrix(seeing)
+;print,size(seeing)
+;print,size(area)
+sunseeing = sundot * area
+nuke_seeing = seeing*area
+;seeing = matrix_multiply(seeing, area,/btranspose)
+;seesing = diag_matrix(seesing)
+;print, seesing - (seeing*area)
 ;print,seeing[1000:1010]
 ;print,seeing[1000:1010]/seein
 ;print,size(obsdot)
@@ -429,8 +438,18 @@ seeing = diag_matrix(seeing)
 ;print,""
 ;print,obsdot[0]*sundot[0],obsdot[1]*sundot[1],obsdot[2]*sundot[2],obsdot[3]*sundot[3]
 ;print,size(seeing)
+
+;applying the jet!
+;jetpower, in percentage relative to the nucleus
+jetpower = 100.
+nukepower = 0.0
+jetpower = jetpower/100.0
+full_seeing = sunseeing * ( jetflags*jetpower + 1.0*nukepower)
+;jet jet
+
+
 ;sum brightness of all the plates!
-lumos = total(seeing)
+lumos = total(full_seeing)
 
 if keyword_set(print_mess) then begin
 
