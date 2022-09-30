@@ -4,6 +4,20 @@ import matplotlib.pyplot as plt
 from cometmeta import a
 from datafunctions import selector
 
+def figg():
+    fig,ax = plt.subplots()
+    fig.figsize=(10,6)
+    fig.dpi=140   
+    return fig, ax
+def axxx(figgs, axxs, ymax=1., d1=316.0, d2=318.0):
+    axxs.set_xlim(d1,d2)
+    axxs.set_ylim(-ymax*0.07,ymax)
+    axxs.set_xlabel('Day of year')
+    axxs.set_ylabel('Brightness [arbitrary units]')
+    #ax.set_title("")
+    #axxs.legend(loc='best')
+    return
+
 ind, tims = np.loadtxt('/home/antojr/stash/datatxt/scantimes.txt',unpack=True,skiprows=1)
 lit27 = np.loadtxt('/home/antojr/hartley2/shape_model/litness_v2_27.txt',unpack=True)
 lit54 = np.loadtxt('/home/antojr/hartley2/shape_model/litness_v2.txt',unpack=True)
@@ -38,7 +52,7 @@ jet18 = np.loadtxt('/home/antojr/stash/datatxt/litness_jetsun_+80+00.txt',unpack
 jet19 = np.loadtxt('/home/antojr/stash/datatxt/litness_jetsun_+80+180.txt',unpack=True)
 jet20 = np.loadtxt('/home/antojr/stash/datatxt/litness_jetsun_+80+270.txt',unpack=True)
 
-dateA, h2oA, co2A , dystA,flag = np.loadtxt("/home/antojr/stash/datatxt/gascurves_v9_15.txt",dtype=float,unpack=True,skiprows=1)
+dateA, h2oA, co2A , dystA,flag = np.loadtxt("/home/antojr/stash/datatxt/gascurves_x2_15.txt",dtype=float,unpack=True,skiprows=1)
 maxes, daats, doys, exps = np.loadtxt("/home/antojr/stash/datatxt/mri_maxes_v3.txt",skiprows=1,dtype=object,unpack=True)
 maxes = maxes.astype(int)
 
@@ -82,52 +96,50 @@ xlims = (2455505.5,2455510.5)
 ax.set_xlim(xlims[0],xlims[1])
 plt.show(block=False)
 """
-fig,ax=plt.subplots()
-fig.dpi=140
-fig.figsize = (10,6)
-#ax.plot(x_t, y_lit27jet2, color='blue', label='86N, 30E' )
+doyc=2455196.5
+d1, d2 = 2455507.45, 2455513.05
+d1-=doyc
+d2-=doyc
+maxy=0.0352
 
-#ax.plot(x_t, jet1, color='purple', label='90 S' )
-#ax.plot(x_t, jet2, color='royalblue' , label='60 S')
-#ax.plot(x_t, jet3, color='deepskyblue', label='30 S')
-#ax.plot(x_t, jet4, color='limegreen', label='0 N')
-#ax.plot(x_t, jet5, color='gold', label='30 N')
-#ax.plot(x_t, jet6, color='darkorange', label='60 N')
-#ax.plot(x_t, jet7, color='red', label='90 N')
-#ax.plot(x_t, jet8, color='green', label='86N, 210E')
-#ax.plot(x_t, jet9, color='pink', label='90N, 90E')
-ax.plot(x_t, jet10, color='magenta', label='80N, 90E')
-#ax.plot(x_t, jet11, color='steelblue', label='75N, 90E')
-#ax.plot(x_t, jet12, color='darkmagenta', label='70N, 90E')
-#ax.plot(x_t, jet13, color='chocolate', label='65N, 90E')
-#ax.plot(x_t, jet14, color='darkseagreen', label='55N, 90E')
-#ax.plot(x_t, jet15, color='crimson', label='50N, 90E')
-#ax.plot(x_t, jet16, color='lime', label='45N, 90E')
-#ax.plot(x_t, jet17, color='darkkhaki', label='40N, 90E')
-ax.plot(x_t, jet18, color='violet', label='80N, 0E')
-#ax.plot(x_t, jet19, color='yellow', label='80N, 180E')
-ax.plot(x_t, jet20, color='darkgoldenrod', label='80N, 270E')
+fig,ax=figg()
+#ax.plot(x_t-doyc, y_lit27jet2, color='blue', label='86N, 30E' )
 
+ax.plot(x_t-doyc, jet1, color='purple', label='90S' )
+#ax.plot(x_t-doyc, jet2, color='royalblue' , label='60S, 90E')
+#ax.plot(x_t-doyc, jet3, color='deepskyblue', label='30S, 90E')
+#ax.plot(x_t-doyc, jet4, color='limegreen', label='0N, 90E')
+#ax.plot(x_t-doyc, jet5, color='darkgoldenrod', label='30N, 90E')
+#ax.plot(x_t-doyc, jet6, color='orangered', label='60N, 90E')
+#ax.plot(x_t-doyc, jet7, color='red', label='90N')
+#ax.plot(x_t-doyc, jet8, color='green', label='86N, 210E')
+#ax.plot(x_t-doyc, jet9, color='pink', label='90N')
+#ax.plot(x_t-doyc, jet10, color='magenta', label='80N, 90E')
+#ax.plot(x_t-doyc, jet11, color='steelblue', label='75N, 90E')
+#ax.plot(x_t-doyc, jet12, color='darkmagenta', label='70N, 90E')
+#ax.plot(x_t-doyc, jet13, color='chocolate', label='65N, 90E')
+#ax.plot(x_t-doyc, jet14, color='darkseagreen', label='55N, 90E')
+#ax.plot(x_t-doyc, jet15, color='crimson', label='50N, 90E')
+#ax.plot(x_t-doyc, jet16, color='lime', label='45N, 90E')
+#ax.plot(x_t-doyc, jet17, color='darkkhaki', label='40N, 90E')
+#ax.plot(x_t-doyc, jet18, color='violet', label='80N, 0E')
+#ax.plot(x_t-doyc, jet19, color='yellow', label='80N, 180E')
+#ax.plot(x_t-doyc, jet20, color='darkgoldenrod', label='80N, 270E')
 
 #ax.plot(x_t, y_jet2, color='pink' )
 #ax.plot(x_t, y_mri_dist*1e9, color='k')
 #ax.plot(x_t, y_500jet)
 #ax.plot(x_t, y_jetnuke +1)
 #ax.plot(x_t, y_mri_dist*1e8, color='k')
-ax.scatter(x_t, co2A*1e2,s=1,color='k',zorder=10)
-ax.vlines(x_t[maxes],ymin=0,ymax=0.1,linewidth=1.,color='grey')
+ax.scatter(x_t-doyc, co2A*25*40,s=1,color='k',zorder=10, label='$CO_2$ data')
+#ax.vlines(x_t[maxes]-doyc,ymin=0,ymax=0.1,linewidth=1.,color='grey')
 
 #ax.plot(x_t2,y542)
 #ax.plot(x_period,pgram27)
 #ax.plot(x_period,pgram54)
-xlims = (2455505.5,2455512.5)
-ax.set_xlim(xlims[0],xlims[1])
-#ax.set_xlim((0.1,1))
-ax.set_ylim((-1e-4,0.007))
-ax.set_xlabel('Julian Date')
-ax.set_ylabel('Brightness')
-ax.legend(loc='best')
-#plt.savefig('synthcurve_5days.png',dpi=fig.dpi)
+
+axxx(fig, ax, d1=d1, d2=d2, ymax=maxy)
+plt.savefig('/home/antojr/dps_bucket/synthetic_curves/90S_focus_2.png',dpi=fig.dpi)#,bbox_inches='tight')
 plt.show(block=True)
 #input('enter')
 

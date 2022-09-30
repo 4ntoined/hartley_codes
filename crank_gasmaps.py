@@ -90,12 +90,20 @@ def measure_gas(spect, waves, spectrum_scani=0, xy=(-99,-99), demo=False, resist
     h2o_long_i = (h2ol+6,h2ol+13)        #long h2o, 5->7 pixel, wider gap
     co2_long_i = (co2l+4, co2l+9)       #long co2, 5 pixel, only one that's unchanged from v5
     long_i = (h2o_long_i,co2_long_i)
+    #saving_segments = []
     ## plotting the endpoints
     if demo:
         ax1.step( waves[ h2o_shor_i[0]:h2o_shor_i[1] ], spect[ h2o_shor_i[0]:h2o_shor_i[1]], color='darkblue') #h2o short 
         ax1.step( waves[ h2o_long_i[0]:h2o_long_i[1] ], spect[ h2o_long_i[0]:h2o_long_i[1]], color='darkblue') #h2o long
         ax1.step( waves[ co2_shor_i[0]:co2_shor_i[1] ], spect[ co2_shor_i[0]:co2_shor_i[1]], color='darkblue') #co2 short
         ax1.step( waves[ co2_long_i[0]:co2_long_i[1] ], spect[ co2_long_i[0]:co2_long_i[1]], color='darkblue') #co2 long
+        #saving_segments.append( ( waves[ h2o_shor_i[0]:h2o_shor_i[1] ], spect[ h2o_shor_i[0]:h2o_shor_i[1]] ) )
+        #saving_segments.append( ( waves[ h2o_long_i[0]:h2o_long_i[1] ], spect[ h2o_long_i[0]:h2o_long_i[1]] ) )
+        #saving_segments.append( ( waves[ co2_shor_i[0]:co2_shor_i[1] ], spect[ co2_shor_i[0]:co2_shor_i[1]] ) )
+        #np.savez('/home/antojr/codespace/endpoints.npz', h1wave= waves[h2o_shor_i[0]:h2o_shor_i[1]], h2wave= waves[h2o_long_i[0]:h2o_long_i[1]],\
+        #    h1spec= spect[h2o_shor_i[0]:h2o_shor_i[1]], h2spec= spect[h2o_long_i[0]:h2o_long_i[1]], \
+        #    c1wave= waves[co2_shor_i[0]:co2_shor_i[1]], c2wave= waves[co2_long_i[0]:co2_long_i[1]], \
+        #    c1spec= spect[co2_shor_i[0]:co2_shor_i[1]], c2spec= spect[ co2_long_i[0]:co2_long_i[1]] )
     #wavelengths in the bands
     #this should be automated to find the index of tje median of wavelength in each of the endpoint segments
     #sigh I guess that means I have to do it...
@@ -110,6 +118,7 @@ def measure_gas(spect, waves, spectrum_scani=0, xy=(-99,-99), demo=False, resist
     noname = ( (9,-10),(6,-7)  )
     #hold the result
     two = []
+    saving_more = []
     #print(spec_h.size)
     for i in (0,1): #we're gonna write once and run twice for h2o and co2
         ## unloading where the bands/endpoints are
@@ -131,6 +140,8 @@ def measure_gas(spect, waves, spectrum_scani=0, xy=(-99,-99), demo=False, resist
                             kind="linear", bounds_error=False, fill_value="extrapolate")
         ## use the interpolation to fabricate the continuum through the gas band
         contin_line = contin(wavo)
+        saving_more.append(wavo)
+        saving_more.append(contin_line)
         ## subtract the fabricated continuum 
         gasline = spec - contin_line #h2o emission, with continuum removed
         if demo:
@@ -140,6 +151,7 @@ def measure_gas(spect, waves, spectrum_scani=0, xy=(-99,-99), demo=False, resist
         inta, intb = intab
         gas = np.trapz(gasline[inta:intb],x=wavo[inta:intb])
         two.append(gas)
+    np.savez('/home/antojr/codespace/continuum.npz', hwaves=saving_more[0], hcon=saving_more[1], cwaves=saving_more[2], ccon=saving_more[3])
     #############  dust  ###############
     wave_d = waves[duss:dusl+1]
     dus = np.trapz( spect[duss:dusl+1], x=wave_d)

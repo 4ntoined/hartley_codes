@@ -29,13 +29,13 @@ def unloadCube(scan_index, cubename='', wavename = ''):
     #xsize = da1.shape[2] #spatial pixels in one (1) frame ~256
     return (dat, wav, hdr)
 
-def selectOne():
+def selectOne(specname='name',wavename='name'):
     ### choosing a scan, by: index [0-1320]?, exposureid+DOY? [xxx yyyyyyy/y], julian date[2455494-2455517], directory
     #direc= input("directory with the smooth cube?: ") or '/chiron4/antojr/calibrated_ir/312.4300015'
     scani = selector_prompt()
     direc = a['directory path'][scani]
-    c1 = fits.open(direc + spec_name_1) #cube with smooth spectra
-    cw = fits.open(direc + wave_name)
+    c1 = fits.open(direc + specname) #cube with smooth spectra
+    cw = fits.open(direc + wavename)
     da1 = c1[0].data
     wav = cw[0].data
     #h1 = 2.59
@@ -86,11 +86,11 @@ def plotSeries(series, saveNames=[''], savfig=False):
     input("Ready to go?")
     return
 
-spec_name_1 = '/cube_smooth_final_v5.fit'
-wave_name   = '/cube_wave_final_v1.fit'
+spec_names = ['/cube_smooth_final_v7.fit', '/cube_smooth_final_v5.fit']
+wave_names   = ['/cube_wave_final_v7.fit', '/cube_wave_final_v1.fit']
 
 if __name__ == '__main__':
-    option_a = input('Which door? 1-> basic, 2-> experiment-9:\n')
+    option_a = input('Which mode? 1-> basic, 2-> experiment-9:\n')
     if option_a == '2':
         #then do the thing for Lori
         #scan i = 683, pixelx is 198, 199, 200 and pixely 12, 11, 13
@@ -98,16 +98,17 @@ if __name__ == '__main__':
         sero = [
            (683, 198, 11), (683, 199, 11), (683,200, 11),
            (683, 198, 12), (683, 199, 12), (683,200,12),
-           (683, 198, 13), (683, 199, 13), (683, 200, 13)
+           (683, 198, 14), (683, 199, 14), (683, 200, 14)
         ]
-        figs = [ '/home/antojr/codespace/plotting_cr/ruby314_z_' + f'{i:0>3}.png'for i in range(len(sero)) ]
+        figs = [ '/home/antojr/codespace/plotting_cr/emerald314_z_' + f'{i:0>3}.png'for i in range(len(sero)) ]
         plotSeries(sero,saveNames=figs,savfig=True)
     elif option_a == '1':
         #then do the basic thing with the selector prompt
-        selectOne()
+        selectOne(specname = spec_names[0], wavename=wave_names[0])
         input("Enter anything...")
     elif option_a == '3':
-        print("only functionality is this message so cool")
+        #print("only functionality is this message so cool")
+        pass
     else:
         print('nope')
 else:

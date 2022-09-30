@@ -112,7 +112,7 @@ def rgb(pathToScan,scan_i,plot_it = False,save_plot=False, scaling = 'linear', v
     plt.close(fig)
     return goku
 
-def centering(pathToScan, scan_i, plot_it = False, save_plot=False, save_here='/home/antojr/hartley2/results/', red = False, grn = False, blu = False, figdpi = 120, scaling='linear', vmin_fact=1e-3):
+def centering(pathToScan, scan_i, usemap='cube_gasmap_final_enhance_v7.fit', plot_it = False, save_plot=False, save_here='/home/antojr/hartley2/results/', red = False, grn = False, blu = False, figdpi = 120, scaling='linear', vmin_fact=1e-3):
     """
     Inputs: see above
     Returns
@@ -146,16 +146,16 @@ def centering(pathToScan, scan_i, plot_it = False, save_plot=False, save_here='/
             fig,axc = plt.subplots()
             fig.dpi = figdpi
             plo = axc.imshow(bigg[:,:,colr[0]], cmap= cmapss[colr[0]], origin = 'lower')
-            divider = make_axes_locatable(axc)
-            caxx = divider.append_axes("right",size="5%",pad=0.1)
-            plt.colorbar(plo,cax=caxx)
+            #divider = make_axes_locatable(axc)
+            #caxx = divider.append_axes("right",size="5%",pad=0.1)
+            #plt.colorbar(plo,cax=caxx)
             if xo <= 0.0 or yo ==0.0:
                 axc.set_title(f"{a['julian date'][scan_i]:.3f} | {a['DOY'][scan_i]}.{a['exposure id'][scan_i]} | no nucleus")
             else:
                 axc.set_title(f"{a['julian date'][scan_i]:.3f} | {a['DOY'][scan_i]}.{a['exposure id'][scan_i]}")
             if save_plot:
                 figdat = {'Author':'Antoine Darius','Software':'rgb_imaging_v2.py'}
-                plt.savefig(save_here+ f"rgbc_v3_{colortags[colr[0]]}_{scan_i:0>4}.png",metadata=figdat,bbox_inches='tight',dpi=fig.dpi)
+                plt.savefig(save_here+ f"rgbc_v4_{colortags[colr[0]]}_nobar_{scan_i:0>4}.png",metadata=figdat,bbox_inches='tight',dpi=fig.dpi)
             if plot_it:
                 plt.show(block=False)
             #plt.close(fig)
@@ -170,9 +170,10 @@ def centering(pathToScan, scan_i, plot_it = False, save_plot=False, save_here='/
         ax2.set_title(f"{a['julian date'][scan_i]:.3f} | {a['DOY'][scan_i]}.{a['exposure id'][scan_i]} | no nucleus")
     else:
         ax2.set_title(f"{a['julian date'][scan_i]:.3f} | {a['DOY'][scan_i]}.{a['exposure id'][scan_i]}")
+    plt.tight_layout
     if save_plot:
         figdat = {'Author':'Antoine Darius','Software':'rgb_imaging_v2.py'}
-        plt.savefig(save_here+ f"rgbc_v3_rgb_{scan_i:0>4}.png",metadata=figdat,bbox_inches='tight',dpi=fig.dpi)
+        plt.savefig(save_here+ f"rgbc_v4_rgb_nobar_{scan_i:0>4}.png",metadata=figdat,bbox_inches='tight',dpi=fig.dpi)
     if plot_it:
         plt.show(block=False)
     #input('Ready?')
@@ -192,17 +193,29 @@ if __name__ == '__main__':
         rangor = input('index range: ')
         scalor = input('scale: ')
         minimu = input('min value cutoff: ') or '1e-3'
+        versio = input('map version 6/7: ') or '7'
         try:
             mini = float(minimu)
             sta, sto = rangor.split()
+            if versio == '6' or versio == '7':
+                pass
+            else:
+                raise ValueError
         except ValueError:
             print("NO!")
         except:
             print('Yeah you super broke it.')
         pass
+        if versio == '6':
+            maptouse = '/cube_gasmaps_final_enhance_v6.fit'
+        elif versio == '7':
+            maptouse = '/cube_gasmaps_final_enhance_v7.fit'
+        else:
+            print('NO!')
+            quit()
         for i in range(int(sta),int(sto),1):
             #centering(directs[i],i,plot_it=True, grn = True, blu = True, red= True, save_plot=False, scaling=scalor,vmin_fact=mini)
-            centering(directs[i],i,plot_it=True, grn = True, blu = True, red= False, save_plot=False, scaling=scalor,vmin_fact=mini)
+            centering( directs[i], i, usemap=maptouse, plot_it=True, grn=True, blu=True, red=False, save_plot=False, scaling=scalor, vmin_fact=mini )
         pass
         input('Done.')
         print('Quitting...')
@@ -213,14 +226,14 @@ if __name__ == '__main__':
         pass
     elif option_1 == '3':   
         #batch create and save the rgb images
-        print("making all the pictures")
+        print("saving a bunch of pictures")
         directs = a['directory path'].copy()
-        for i in range(0,1321):
+        for i in range(200,301):
             print(i)
             #if i%100 == 0:
             #    centering(directs[i],i,save_plot=True,plot_it=True)
             #else:
-            centering(directs[i],i,save_plot=True,red=True,grn=True,blu=True, save_here = '/chiron4/antojr/rgb_centered/', figdpi=140, scaling='root',vmin_fact=1e-2)
+            centering(directs[i],i,usemap='/cube_gasmaps_final_enhance_v7.fit', save_plot=True,red=True,grn=True,blu=True, save_here = '/chiron4/antojr/rgb_centered/v4_nobars/', figdpi=140, scaling='root',vmin_fact=0.0)
             pass
         print('Complete. Quitting...')
         #quit()
