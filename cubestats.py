@@ -1,11 +1,18 @@
 #Antoine
 #histograms and stats
 
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy.io import fits as fit
 from cometmeta import a
 from datafunctions import selector, selector_prompt
+
+def sortDires(row):     #key for sorting directories by time data were taken
+    cal = fit.open(row+"/dal_001.fit")
+    tym = cal[0].header["OBSMIDJD"]
+    cal.close()
+    return tym
 
 def unloadCube(scan_index, cubename='', wavename=''):
     cubo = fit.open( a['directory path'][scan_index] + '/' + cubename )
@@ -82,11 +89,24 @@ if __name__ == '__main__':
         #keep track of those measures over time ie progression
         #and I also wanna be able to add up, store, and review the histograms
         #means, maxx, stan, histogram object?
-        stat_array = np.zeros((2,3,1321),dtype=float)
         #stat_array = stat_array.astype(object)
         #meanso = np.nanmean()
-        for i in range( len( a['julian date'] )):
-            gases, headd = unloadCube(i, cubename='cube_gasmaps_final_enhance_v6.fit' )
+        #q = []
+        #for paths, dirs, fils in os.walk("/chiron4/antojr/tester/314inscene"):
+        #    q.append(paths)
+        #    #print(paths)
+        #q = q[1:]
+        #q.sort(key=sortDires)
+        q = a['directory path'].copy()
+        #q = np.array(q,dtype=object)
+        stat_array = np.zeros((2,3,len(q)),dtype=float)
+        jds = []
+        for i in range( len(q) ):
+            gases, headd = unloadCube(i, cubename='cube_gasmaps_final_enhance_v7.fit' )
+            #cuba = fit.open(q[i] + '/cube_gasmaps_final_enhance_v7.fit')
+            #gases = cuba[0].data
+            #headd = cuba[0].header
+            jds.append(headd['OBSMIDJD'])
             gasclip = gases[:,:,170:].copy()
             mean = np.nanmean( gasclip,axis=(1,2)) #will be h2omean, co2mean, and dustmean
             stan = np.nanstd( gasclip, axis=(1,2))
@@ -102,30 +122,42 @@ if __name__ == '__main__':
             pass
         #really quick I'm just gonna save this information so I dont have to compute it everytime
         stor = fit.PrimaryHDU(stat_array)
-        stor.writeto('scanstats.fits')
+        #stor.writeto('/home/antojr/codespace/scanstats_v7.fits')
         #uhh let's plot the mean of h2o over time
         fig,ax = plt.subplots()
         fig.figsize=(12,6)
         fig.dpi=120
-        ax.scatter( a['julian date'], stat_array[0,0,:],marker='+',s=1.3, label='H2O means')
-        ax.scatter( a['julian date'], stat_array[1,0,:],marker='x',s=1., label='CO2 means')
-        ax.hlines(0, xmin=a['julian date'][0], xmax=a['julian date'][-1],color='k',lw=0.8)
-        ax.set_ylim((-0.0002,None))
+        ax.scatter( jds, stat_array[0,0,:],marker='+',s=1.3, label='H2O means')
+        ax.scatter( jds, stat_array[1,0,:],marker='x',s=1., label='CO2 means')
+        ax.hlines(0, xmin=jds[0], xmax=jds[-1],color='k',lw=0.8)
+        #ax.set_ylim((-0.0002,None))
         plt.legend()
+        #plt.savefig('gasmaps_means_v7.png',dpi=fig.dpi,bbox_inches='tight')
         plt.show(block=True)
         pass
     elif mode == '3':
         scanstats = fit.open('/home/antojr/codespace/scanstats.fits')
+        newstats = fit.open('/home/antojr/codespace/scanstats_v7.fits')
         stat_array = scanstats[0].data
-        
+        new_stats = newstats[0].data
         fig,ax = plt.subplots()
         fig.figsize=(12,6)
         fig.dpi=120
         ax.hlines(0, xmin=a['julian date'][0], xmax=a['julian date'][-1],color='k',lw=0.8)
-        ax.scatter( a['julian date'], stat_array[0,0,:],marker='+',s=1.3, label='H2O means')
-        ax.scatter( a['julian date'], stat_array[1,0,:],marker='x',s=1., label='CO2 means')
-        ax.set_ylim((-0.00002,0.00005))
+        #old
+        #ax.scatter( a['julian date'], stat_array[0,0,:],marker='+',s=1.3, label='H2O means')
+        #ax.scatter( a['julian date'], stat_array[1,0,:],marker='x',s=1., label='CO2 means')
+        #new
+        #ax.scatter( a['julian date'], new_stats[0,0,:], marker='+', s=1., label = 'new h2o'  )
+        #ax.scatter( a['julian date'], new_stats[1,0,:], marker='x', s=1., label = 'new co2'  )
+        #diff
+        ax.scatter( a['julian date'], new_stats[0,0,:]-stat_array[0,0,:], marker='+', s=1., label = 'h2o diff'  )
+        ax.scatter( a['julian date'], new_stats[1,0,:]-stat_array[1,0,:], marker='x', s=1., label = 'co2 diff'  )
+        #
+        #ax.set_ylim((-0.7e-5,3.2e-5))
+        ax.set_xlim((2455494.4,2455518.6))
         plt.legend()
+        plt.savefig('/home/antojr/hartley2/results/gasmapsmeans_diff.png',dpi=fig.dpi,bbox_inches='tight')
         plt.show(block=True)
         pass
     elif mode == '4':
