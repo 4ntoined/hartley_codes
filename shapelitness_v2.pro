@@ -303,7 +303,8 @@ dists = targetBody(vert,targetll) ;bolo is 2 dimensional, but its just 1 column
 ;print,dists
 ;print,size(bolo)
 ;close_to_target = where( logical_and( (bolo),()  ) )
-close_to_target = where( dists lt 0.1 )
+jet_radius = 0.2
+close_to_target = where( dists lt jet_radius )
 if isa(close_to_target,/array) then no_hits = BOOLEAN(0) else no_hits = BOOLEAN(1)
 ;print,'no hits? : '+ string(int(no_hits))
 ;print,vert_latlon[0,4583:5000]

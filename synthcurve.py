@@ -15,7 +15,7 @@ def axxx(figgs, axxs, ymax=1., d1=316.0, d2=318.0):
     axxs.set_xlabel('Day of year')
     axxs.set_ylabel('Brightness [arbitrary units]')
     #ax.set_title("")
-    #axxs.legend(loc='best')
+    axxs.legend(loc='best')
     return
 
 ind, tims = np.loadtxt('/home/antojr/stash/datatxt/scantimes.txt',unpack=True,skiprows=1)
@@ -51,6 +51,8 @@ jet17 = np.loadtxt('/home/antojr/stash/datatxt/litness_jetsun_+40+90.txt',unpack
 jet18 = np.loadtxt('/home/antojr/stash/datatxt/litness_jetsun_+80+00.txt',unpack=True)
 jet19 = np.loadtxt('/home/antojr/stash/datatxt/litness_jetsun_+80+180.txt',unpack=True)
 jet20 = np.loadtxt('/home/antojr/stash/datatxt/litness_jetsun_+80+270.txt',unpack=True)
+jet21 = np.loadtxt('/home/antojr/stash/datatxt/litness_jetsun100_+70+180.txt',unpack=True)
+jet22 = np.loadtxt('/home/antojr/stash/datatxt/litness_jetsun200_+70+180.txt',unpack=True)
 
 dateA, h2oA, co2A , dystA,flag = np.loadtxt("/home/antojr/stash/datatxt/gascurves_x2_15.txt",dtype=float,unpack=True,skiprows=1)
 maxes, daats, doys, exps = np.loadtxt("/home/antojr/stash/datatxt/mri_maxes_v3.txt",skiprows=1,dtype=object,unpack=True)
@@ -100,12 +102,12 @@ doyc=2455196.5
 d1, d2 = 2455507.45, 2455513.05
 d1-=doyc
 d2-=doyc
-maxy=0.0352
+maxy=0.008
 
 fig,ax=figg()
 #ax.plot(x_t-doyc, y_lit27jet2, color='blue', label='86N, 30E' )
 
-ax.plot(x_t-doyc, jet1, color='purple', label='90S' )
+#ax.plot(x_t-doyc, jet1, color='purple', label='90S' )
 #ax.plot(x_t-doyc, jet2, color='royalblue' , label='60S, 90E')
 #ax.plot(x_t-doyc, jet3, color='deepskyblue', label='30S, 90E')
 #ax.plot(x_t-doyc, jet4, color='limegreen', label='0N, 90E')
@@ -125,13 +127,15 @@ ax.plot(x_t-doyc, jet1, color='purple', label='90S' )
 #ax.plot(x_t-doyc, jet18, color='violet', label='80N, 0E')
 #ax.plot(x_t-doyc, jet19, color='yellow', label='80N, 180E')
 #ax.plot(x_t-doyc, jet20, color='darkgoldenrod', label='80N, 270E')
+ax.plot(x_t-doyc, jet21, color='red', label='70N, 180E')
+ax.plot(x_t-doyc, jet22, color='blue', label='70N, 180E')
 
 #ax.plot(x_t, y_jet2, color='pink' )
 #ax.plot(x_t, y_mri_dist*1e9, color='k')
 #ax.plot(x_t, y_500jet)
 #ax.plot(x_t, y_jetnuke +1)
 #ax.plot(x_t, y_mri_dist*1e8, color='k')
-ax.scatter(x_t-doyc, co2A*25*40,s=1,color='k',zorder=10, label='$CO_2$ data')
+ax.scatter(x_t-doyc, co2A*25*12.0*0.8,s=1,color='k',zorder=10, label='$CO_2$ data')
 #ax.vlines(x_t[maxes]-doyc,ymin=0,ymax=0.1,linewidth=1.,color='grey')
 
 #ax.plot(x_t2,y542)
@@ -139,7 +143,7 @@ ax.scatter(x_t-doyc, co2A*25*40,s=1,color='k',zorder=10, label='$CO_2$ data')
 #ax.plot(x_period,pgram54)
 
 axxx(fig, ax, d1=d1, d2=d2, ymax=maxy)
-plt.savefig('/home/antojr/dps_bucket/synthetic_curves/90S_focus_2.png',dpi=fig.dpi)#,bbox_inches='tight')
+plt.savefig('/home/antojr/dps_bucket/synthetic_curves/45N_focus_2.png',dpi=fig.dpi)#,bbox_inches='tight')
 plt.show(block=True)
 #input('enter')
 
