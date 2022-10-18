@@ -21,6 +21,8 @@ loc_dat      = np.loadtxt(data_directory+"/nucleus_location_v3.txt",dtype=float)
 aper         = np.loadtxt(data_directory+"/apertureSizes.txt",dtype=float,skiprows=1)
 nsf,dbl,nfr  = np.loadtxt(data_directory+"/nsflip_doubled.txt",dtype=int,skiprows=1,unpack=True,usecols=(1,2,3))
 iss,directs  = np.loadtxt(data_directory+'/directories.txt',dtype=str,unpack=True,skiprows=1)
+##
+scan_flo[:,5]*=1e3
 ####################################################################################################################
 #for each scan there is:
 #julian date, smooth temp, dark level, best fit level, exposure time, doy, exposure id, outlier flag,
@@ -40,4 +42,3 @@ for i in range(len(dark_tem)):
                 aper[i,1], mri_dat[i,0], mri_dat[i,1], mri_dat[i,2], mri_dat[i,3], dark_tem[i,4], \
                 dark_tem[i,6], dbl[i], nsf[i], nfr[i], scan_str[i,0], directs[i] ))
 a = np.array( dats, dtype = typex )     #the array is set
-
