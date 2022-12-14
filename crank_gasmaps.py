@@ -149,6 +149,7 @@ def measure_gas(spect, waves, spectrum_scani=0, xy=(-99,-99), demo=False, resist
             ax1.step(wavo,gasline,color='red')
             ax1.vlines((h1,h2,c1,c2),ymin=0,ymax=0.0014,color='k')
         inta, intb = intab
+        #do sum instead of trapz here#
         gas = np.trapz(gasline[inta:intb],x=wavo[inta:intb])
         two.append(gas)
     np.savez('/home/antojr/codespace/continuum.npz', hwaves=saving_more[0], hcon=saving_more[1], cwaves=saving_more[2], ccon=saving_more[3])

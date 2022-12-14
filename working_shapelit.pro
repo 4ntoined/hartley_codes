@@ -64,7 +64,7 @@ return,checkedTri
 end
 
 
-pro shapelitness, lumos, jd, jetlat, jetlon, h2orient=h2orient, obsradec=radec, earth=earth, $
+pro shapelitness, sundot, obsdot, jd, jetlat, jetlon, h2orient=h2orient, obsradec=radec, earth=earth, $
          ncp_ca=ncp_ca, grid=grid, axes=axes, sunvec=sunvec, amv_plot=amv_plot, $
          ncp_spice=ncp_spice, print_geom=print_geom,print_mess=print_mess, obs_lat=obs_lat,sun_lat=sun_lat,$
          longax_clk = longax_clk,nodisp=nodisp,sunobs=sunobs,axis_ornt=axis_ornt
@@ -292,7 +292,6 @@ xpos = cross_product(ypos,zpos)
 shape_read_model,'H2',vert,tri,conn,skipline=0
 ;get the area of all the plates
 area = shape_tri_area(vert,tri)
-save, vert, conn, tri, filename='h2_shape.sav'
 ;jet games
 target_lat = jetlat
 target_lon = jetlon
@@ -448,10 +447,12 @@ ambjetpower = jetpower/2.
 nukepower = 0.0
 full_seeing = area * (sunseeing * (jetflags*jetpower + nukepower) + (jetflags * ambjetpower) )
 ;jet jet
-
+;sundot = facets + sun, obsdot = facets+obs,
+;print,sundot,obsdot
 ;sum brightness of all the plates!
-lumos = total(full_seeing)
-
+;lumos = total(full_seeing)
+;print,size(obsdot)
+;print,size(sundot)
 if keyword_set(print_mess) then begin
 
 print,"Triangles in the shape model: ",ntri
