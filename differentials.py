@@ -27,7 +27,7 @@ def plot_scatter(curves, colors=['blue','red'], labels=['H','C'], zero=False):
     #
     plt.show()
     return
-def plot_line(curves, colors=['blue','red'], labels=['H','C'], zero=False):
+def plot_line(curves, colors=['blue','red'], labels=['H','C'], zero=False, title=''):
     """
     curves is a list of curves
     """
@@ -41,6 +41,7 @@ def plot_line(curves, colors=['blue','red'], labels=['H','C'], zero=False):
     if zero: ax.hlines((0.),linewidth=0.7,color='k',xmin=curves[0][0][0],xmax=curves[0][0][-1])
     ax.set_ylabel('Flux')
     ax.set_xlabel('Julian Date')
+    if title: ax.set_title(title)
     ax.legend(loc='best')
     #
     plt.show()
@@ -114,7 +115,7 @@ def get_derivative(times, yval, period, even_sampling = False, num_samples = 150
     """
     #before using you should get rid of error values ie -99 or 0 in lightcurves
     #normalize by dividing out mean
-    yval_mean  = yval / np.mean(yval)
+    yval_mean = yval.copy()
     #even sampling if you want
     if even_sampling:
         #do all the even sampling stuff
@@ -133,8 +134,9 @@ def get_derivative(times, yval, period, even_sampling = False, num_samples = 150
     y_deriv = np.array(y_deriv, dtype=float)
     check_for_99s = np.ravel( y_deriv > -99. )
     #rejected = np.count_nonzero(~check_for_99s)
-    y_deriv_checked = y_deriv[ check_for_99s ]
+    y_deriv_checked = y_deriv[ check_for_99s ].squeeze()
     time_checked = timeline[ check_for_99s ]
+    #for i in (time_checked, y_deriv_checked): print(i.shape)
     return (time_checked, y_deriv_checked, rejected)
 def a_line(xx, a, b):
     return a*xx+b
@@ -145,14 +147,109 @@ dat, h1, c1, d1, flag1 = np.loadtxt("/home/antojr/stash/datatxt/gascurves_x4_424
 #plot_curve([c1,h1])
 #masking the data for no nucleuses
 check_for_nucleus =  np.abs(c1) > 1e-3
-
 c1_mask = c1[ check_for_nucleus ]
 h1_mask = h1[ check_for_nucleus ]
 tt_mask = tt[ check_for_nucleus ]
 
-### testing the new function ###
-t_h, y_h, rejected_h = get_derivative(tt_mask, h1_mask, 6., even_sampling=True)
-t_c, y_c, rejected_c = get_derivative(tt_mask, c1_mask, 6., even_sampling=True)
+### new variable names + meaning  yval_mean  = yval / np.mean(yval)
+y_h = h1_mask / np.mean(h1_mask)
+y_c = c1_mask / np.mean(c1_mask)
+tt = tt_mask.copy()
+
+### first derivatives : change in flux over time : speed 
+#   zero = peaks and troughs of lightcurve : positive and negative = slope of lightcurve
+print('==== getting first derivative ====')
+t_h, dy_h, rejected_dh = get_derivative(tt, y_h, 6., even_sampling=True)
+t_c, dy_c, rejected_dc = get_derivative(tt, y_c, 6., even_sampling=True)
+print('lost for lack of neighbors: ' + str(rejected_dh) + ',' + str(rejected_dc))
+# look for the zeros
+zeros1_h= np.squeeze( find_zeros(dy_h) )
+zeros1_c= np.squeeze( find_zeros(dy_c) )
+### second derivatives : change in flux speed over time : acceleration 
+#   zero = inflection points in lightcurve : positive and negative = concavity (up and down) of lightcurve ###
+print('==== getting second derivative ====')
+tt_h, ddy_h, rejected_ddh = get_derivative(t_h, dy_h, 6.) #, even_sampling=True)
+tt_c, ddy_c, rejected_ddc = get_derivative(t_c, dy_c, 6.) #, even_sampling=True)
+print('lost for lack of neighbors: ' + str(rejected_ddh) + ',' + str(rejected_ddc))
+#zeros2_c= find_zeros(ddy_c)
+#zeros2_h= find_zeros(ddy_h)
+zeros2_h= np.squeeze( find_zeros(ddy_h) )
+zeros2_c= np.squeeze( find_zeros(ddy_c) )
+#print(len(tt_h),len(ddy_h))
+### third derivatives : change in flux acceleration : jerk
+print('==== getting third derivative ====')
+ttt_h, dddy_h, rejected_dddh = get_derivative(tt_h, ddy_h, 2.) #, even_sampling=True)
+ttt_c, dddy_c, rejected_dddc = get_derivative(tt_c, ddy_c, 2.) #, even_sampling=True)
+print('lost for lack of neighbors: ' + str(rejected_dddh) + ',' + str(rejected_dddc))
+zeros3_h= find_zeros(dddy_h)
+zeros3_c= find_zeros(dddy_c)
+
+#### work with the zeros ####
+#print(t_c[np.squeeze(zeros1_c)])
+t_zero_h = t_h[ zeros1_h ]
+t_zero_c = t_c[ zeros1_c ]
+t_zero_h2 = tt_h[ zeros2_h ]
+t_zero_h2 = tt_h[ zeros2_h ]
+
+np.save("times_zeros_h.npy",t_zero_h)
+np.save("times_zeros_c.npy",t_zero_c)
+#np.save("times_zeros_h2.npy",t_zero_h2)
+#np.save("times_zeros_c2.npy",t_zero_c2)
+#print(np.sum(tt_h - t_h))
+#print(np.sum(tt_c-t_c))000
+np.save("times_for_derivatives.npy",t_c)
+np.save("times_indexes_h1.npy",zeros1_h)
+np.save("times_indexes_c1.npy",zeros1_c)
+np.save("times_indexes_h2.npy",zeros2_h)
+np.save("times_indexes_c2.npy",zeros2_c)
+np.save("lc_deri2_h.npy", ddy_h)
+np.save("lc_deri2_c.npy", ddy_c)
+
+header1 = 'times of H2O 1st derivative zero crossings (before crossing): made by derivative.py'
+with open('lc_1deri_h.txt','w') as fil:
+    fil.write(header1 + '\n')
+    for ih in range(np.size(zeros1_h)):
+        fil.write( f"{ t_zero_h[ ih ]}\n" )
+    pass
+header2 = 'times of CO2 1st derivative zero crossings (before crossing): made by derivative.py'
+with open('lc_1deri_c.txt','w') as fil:
+    fil.write(header2 + '\n')
+    for ih in range(np.size(zeros1_c)):
+        fil.write( f"{ t_zero_c[ ih ]}\n" )
+    pass
+
+curveset0 = [ [tt, y_c] ] #0th
+curveset1 = [ [t_h,dy_h],[t_c,dy_c] ] #1st
+curveset2 = [ [tt_h,ddy_h],[tt_c,ddy_c] ] #2nd
+curveset3 = [ [ttt_h,dddy_h],[ttt_c,dddy_c] ] #3rd
+
+curveset4 = [ [t_c,dy_c],[tt_c,ddy_c] ] #1st and 2nd, Co2
+curveset5 = [ [tt_c,ddy_c],[ttt_c,dddy_c] ] #2nd and 3rd, Co2
+
+for i in range(len(zeros1_h)):
+    print(t_h[zeros1_h[i]])
+print(len( zeros1_h), ',', len(zeros1_c))
+#plot_scatter( )
+#plot_line(curveset1, title = 'First Deriv')
+#plot_line(curveset2, title = 'Second Deriv')
+#plot_line(curveset3, title = 'Third Deriv')
+#plot_line(curveset4 , title='First and Second', labels=['1st','2nd'])
+#plot_line(curveset5 , title='Second and Third', labels=['2nd','3rd'])
+
+fig,ax = plt.subplots()
+ax.scatter(tt, y_c/np.max(y_c), color='k', s=1., label='CO2 data')
+ax.plot(t_h, dy_c/np.max(dy_c), color='blue', label='CO2 1-derivative')
+#ax.plot(t_h, ddy_c/np.max(ddy_c), color='red', label='CO2 2-derivative')
+#ax.scatter(tt, y_h/np.max(y_h), color='k', s=1., label='H2O data')
+#ax.plot(t_h, dy_h/np.max(dy_h), color='blue', label='H2O 1-derivative')
+#ax.scatter(eventime,c_deri2, s=2.,marker='.', color='green')
+ax.hlines((0.),linewidth=0.7,color='k',xmin=tt[0],xmax=tt[-1])
+ax.vlines(t_h[ zeros1_c],linewidth=0.7, color='k', ymin=-5., ymax = 5.)
+#ax.vlines(t_h[ zeros1_h],linewidth=0.7, color='k', ymin=-5., ymax = 5.)
+ax.vlines( [2455499.3, 2455503.3],linewidth=3.,color='k', ymin=-5, ymax=5. )
+#ax.vlines(eventime[resuh],linewidth=0.7, color='red', ymin=-5., ymax = 5.)
+ax.legend(loc='best')
+plt.show()
 
 
 """
