@@ -4,7 +4,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from cometmeta import a
-
+from making_plots import plot_scatter
 def figg():
     fig,ax = plt.subplots()
     fig.figsize=(10,6)
@@ -14,7 +14,8 @@ def axxx(figgs, axxs, ymax=None, d1=2455512.5, d2=2455514.5):
     #axxs.hlines((0.),xmin=297,xmax=322,label="zero",color='k',linewidth=0.6,zorder=1)
     axxs.hlines((0.),xmin=297,xmax=322,label="zero",color='k',linewidth=0.6,zorder=1)
     axxs.set_xlim(d1,d2)
-    axxs.set_ylim(-ymax*0.07, ymax)#-8e-6,ymax)#-ymax*0.07, ymax)
+    axxs.set_ylim(None, ymax)#-8e-6,ymax)#-ymax*0.07, ymax)
+    #axxs.set_ylim(-ymax*0.07, ymax)#-8e-6,ymax)#-ymax*0.07, ymax)
     axxs.legend(loc="best")
     axxs.set_xlabel("Day of year")
     axxs.set_ylabel("Flux [$\propto W/m^2$]")
@@ -26,9 +27,13 @@ def axxx(figgs, axxs, ymax=None, d1=2455512.5, d2=2455514.5):
 dateA, h2oA, co2A , dystA, flag = np.loadtxt("/home/antojr/stash/datatxt/gascurves_x3_424km.txt",dtype=float,unpack=True,skiprows=1)
 dateb, h2ob, co2b , dystb,flagb = np.loadtxt("/home/antojr/stash/datatxt/gascurves_v9_15.txt",dtype=float,unpack=True,skiprows=1)
 date_c, h_3, c_3, d_3, flag_c = np.loadtxt("/home/antojr/stash/datatxt/gascurves_x3_15.txt",dtype=float,unpack=True,skiprows=1)
-date4, h4, c4, d4, flag4 = np.loadtxt("/home/antojr/stash/datatxt/gascurves_x3_424km-corrected.txt",dtype=float,unpack=True,skiprows=1)
+date4, h4, c4, d4, flag4 = np.loadtxt("/home/antojr/stash/datatxt/gascurves_x4_shortwater_424km.txt",dtype=float,unpack=True,skiprows=1)
+date5, h5, c5, d5, flag5 = np.loadtxt("/home/antojr/stash/datatxt/gascurves_x4_424km.txt",dtype=float,unpack=True,skiprows=1)
+date6, h6, c6, d6, flag6 = np.loadtxt("/home/antojr/stash/datatxt/gascurves_x4_sumintegral_424km.txt",dtype=float,unpack=True,skiprows=1)
 maxes, daats, doys, exps = np.loadtxt("/home/antojr/stash/datatxt/mri_maxes_v3.txt",skiprows=1,dtype=object,unpack=True)
 maxes = maxes.astype(int)
+curve5 = np.load('results_code/gascurves_x5.npy')
+
 #
 dist = a['comet dist'].copy()
 y_mri = a['mri 7-pixel'].copy()
@@ -65,22 +70,25 @@ yb_d = dystb * y_overdist2
 #yA_co2 *= 1.7
 
 doyc = 2455196.5
-d1,d2 = 2455507.45, 2455513.05
-d1,d2 = 2455494.5, 2455518.5
+d1,d2 = 2455505.45, 2455513.05
+#d1,d2 = 2455494.5, 2455518.5
 d1-=doyc
 d2-=doyc
 
-maxony = 4.4e-5
-maxony *= 1e4
+maxony = None
+#maxony *= 1e1
 scale_new = a['dark level'].copy()
 scale_old = a['dark best fit'].copy()
 
 ####################
 ####################
-fig,ax = figg()
-fig.tight_layout
+
+plot_scatter([ [a['julian date']-doyc,curve5['h2o']/np.mean(h5) ],[ date5-doyc,h5/np.mean(h5) ] ])
+
+#fig,ax = figg()
+#fig.tight_layout
 #
-#ax.scatter(dateA-doyc,yA_h2o,color="blue",label="$H_2O$",s=14.,marker='+',linewidths = 0.6)
+#ax.scatter(dateA-doyc,yA_h2o/np.mean(yA_h2o),color="blue",label="$H_2O$ 424km, no corrections",s=14.,marker='+',linewidths = 0.6)
 #ax.scatter(dateA-doyc,yA_co2,color="green",label="$CO_2$",s=10.,marker='x',linewidths=0.6)
 #ax.plot(dateA-doyc,y_mri*5e6,color='firebrick',label="dust/MRI", linewidth=1.6,zorder=0)
 
@@ -92,18 +100,23 @@ fig.tight_layout
 #ax.scatter(date_c-doyc, h_3, color='purple', s=14., marker='+', linewidths=0.6)
 #ax.scatter(date_c-doyc, c_3, color='gold', s=10., marker='x', linewidths=0.6)
 
-ax.scatter(date4-doyc, h4, color='purple', s=14., marker='+', linewidths=0.6)
-ax.scatter(date4-doyc, c4, color='gold', s=10., marker='x', linewidths=0.6)
+#ax.scatter(date4-doyc, h4/np.mean(h5) + 0.1, color='red', s=14., marker='+', linewidths=0.6, label='H2O small water')
+#ax.scatter(date4-doyc, c4, color='gold', s=10., marker='x', linewidths=0.6)
 #
-axxx(fig,ax, d1=d1, d2=d2, ymax=maxony)
+#ax.scatter(date5-doyc, h5/np.mean(h5), color='blue', s=14., marker='+', linewidths=0.6, label='H2O 424km, interp aper')
+#ax.scatter(date5-doyc, c5/np.mean(h5), color='green', s=14., marker='+', linewidths=0.6, label='CO2 424km, interp aper')
+
+#ax.scatter(date6-doyc, h6/np.mean(h5) + 0.1, color='red', s=14., marker='+', linewidths=0.6, label='H2O sum integral')
+
+#axxx(fig,ax, d1=d1, d2=d2, ymax=maxony)
 #ax.set_xticks(np.arange(299.,323.,3.))
 
 #saving the plot real quick
-figdat = {'Author':'Antoine Darius','Software':'big_gas_curves.py'}
-plotname='mrigascurve_4.png'
-plotpath='/home/antojr/dps_bucket/gascurves/'
+#figdat = {'Author':'Antoine Darius','Software':'big_gas_curves.py'}
+#plotname='mrigascurve_4.png'
+#plotpath='/home/antojr/dps_bucket/gascurves/'
 #plt.savefig(plotpath + plotname, dpi=fig.dpi, metadata = figdat, bbox_inches='tight')
-plt.show()
+#plt.show(block=True)
 
 '''
 fig,ax = plt.subplots()
@@ -139,7 +152,7 @@ ax.set_ylabel("Flux [$\propto W/m^2$]")
 plt.show(block=False)
 '''
 
-ender = input('ENTER TO WIN!!!')
+#ender = input('ENTER TO WIN!!!')
 
 ### figure 
 #ax.scatter(date-doyc,yb_h,color="violet",label="H2O",s=25.,marker='+',linewidths = 0.7)

@@ -42,3 +42,7 @@ for i in range(len(dark_tem)):
                 aper[i,1], mri_dat[i,0], mri_dat[i,1], mri_dat[i,2], mri_dat[i,3], dark_tem[i,4], \
                 dark_tem[i,6], dbl[i], nsf[i], nfr[i], scan_str[i,0], directs[i] ))
 a = np.array( dats, dtype = typex )     #the array is set
+if __name__ == '__main__':
+    save_name = 'a_cometmeta.npy'
+    np.save(save_name,a)
+    print(f"{save_name} saved. Bye.")

@@ -5,7 +5,7 @@
 import numpy as np
 #import os
 import astropy.io.fits as fit
-from cometmeta import a
+#from cometmeta import a
 #from datafunctions import selector, selector_prompt
 def doubl(direc, in_fname='/cube_wave_v1.fit', out_fname='/cube_wave_wild.fit'):
     fil = fit.open(direc + in_fname)
@@ -32,7 +32,7 @@ def fake_doubl(direc, in_fname='mans.fit', out_fname='bro.fit'):
     hdu = fit.PrimaryHDU( z, header=hdr)
     hdu.writeto(direc + out_fname)
     return z
-
+a = np.load('/home/antojr/codespace/a_cometmeta.npy')
 if __name__ == '__main__':
     go = input('What to do?\n')
     if go == '1':
@@ -40,20 +40,24 @@ if __name__ == '__main__':
         dires = a['directory path'].copy()
         doubs = a['doubled flag'].copy()
         prog_counter = 1
-        for i in range(0,1321):
+        sta, sto = 0, 1321
+        for i in range(sta,sto):
             #doubling, smooth5, gasmaps6
             if doubs[i]:
-                doubl(dires[i],in_fname='/cube_smooth_v7.fit',out_fname='/cube_smooth_final_v7.fit')
-                doubl(dires[i],in_fname='/cube_gasmaps_v7.fit',out_fname='/cube_gasmaps_final_v7.fit')
-                doubl(dires[i],in_fname='/cube_wave_v7.fit',out_fname='/cube_wave_final_v7.fit')
+                #smooth cube
+                #doubl(dires[i],in_fname='/cube_smooth_v7.fit',out_fname='/cube_smooth_final_v7.fit')
+                #gasmap
+                doubl(dires[i],in_fname='/cube_gasmaps_v8.fit',out_fname='/cube_gasmaps_final_v8.fit')
+                #wave file
+                #doubl(dires[i],in_fname='/cube_wave_v7.fit',out_fname='/cube_wave_final_v7.fit')
             #copies
             else:
-                fake_doubl(dires[i],in_fname='/cube_smooth_v7.fit',out_fname='/cube_smooth_final_v7.fit')
-                fake_doubl(dires[i],in_fname='/cube_gasmaps_v7.fit',out_fname='/cube_gasmaps_final_v7.fit')
-                fake_doubl(dires[i],in_fname='/cube_wave_v7.fit',out_fname='/cube_wave_final_v7.fit')
+                #fake_doubl(dires[i],in_fname='/cube_smooth_v7.fit',out_fname='/cube_smooth_final_v7.fit')
+                fake_doubl(dires[i],in_fname='/cube_gasmaps_v8.fit',out_fname='/cube_gasmaps_final_v8.fit')
+                #fake_doubl(dires[i],in_fname='/cube_wave_v7.fit',out_fname='/cube_wave_final_v7.fit')
             #what else
             #progress counter
-            if (i-0)/(1321-0) >= prog_counter * 0.1 :
+            if (i-sto)/(sto-sta) >= prog_counter * 0.1 :
                 print(f'{(i-0)/(1321-0)*100.:.3f}% complete...')
                 prog_counter+=1
             pass

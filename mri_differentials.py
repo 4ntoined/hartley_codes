@@ -140,83 +140,99 @@ def get_derivative(times, yval, period, even_sampling = False, num_samples = 150
     return (time_checked, y_deriv_checked, rejected)
 def a_line(xx, a, b):
     return a*xx+b
+a = np.load('a_cometmeta.npy')
 if __name__ == '__main__':
-    a = np.load('a_cometmeta.npy')
     tt = a['julian date'].copy()
     dat, h1, c1, d1, flag1 = np.loadtxt("/home/antojr/stash/datatxt/gascurves_x4_424km-corrected.txt",dtype=float,unpack=True,skiprows=1)
+    #newgasdata = np.load('/home/antojr/codespace/results_code/gascurves_x5-correct.npy')
     mridata = np.load('mri_aperturedata_2.npy')
     mri_date = mridata['date'].copy()
     mri_14 = mridata['14-pix'].copy()
+    #
+    dist = a['comet dist'].copy()
+    dist_interp = interp1d( a['julian date'], dist, kind='linear', bounds_error=False, fill_value='extrapolate')
+    dist_onmri = dist_interp( mri_date )
+
+    mri14_correct = mri_14 * dist_onmri
+    #plot_line( [[mri_date, mri14_correct]] )
+
+    #mri_interp = interp1d(mri_date,mri_14,kind='linear',fill_value=0.0)   
+    #mri_ongas = mri_interp(dat)
+    
+    
     #plot her
     #plot_curve([c1,h1])
     #masking the data for no nucleuses
-    check_for_nucleus =  np.abs(c1) > 1e-3
-    c1_mask = c1[ check_for_nucleus ]
-    h1_mask = h1[ check_for_nucleus ]
-    tt_mask = tt[ check_for_nucleus ]
+    
+    #check_for_nucleus =  np.abs(c1) > 1e-3
+    #c1_mask = c1[ check_for_nucleus ]
+    #h1_mask = h1[ check_for_nucleus ]
+    #tt_mask = tt[ check_for_nucleus ]
     
     ### new variable names + meaning  yval_mean  = yval / np.mean(yval)
-    y_h = h1_mask / np.mean(h1_mask)
-    y_c = c1_mask / np.mean(c1_mask)
-    tt = tt_mask.copy()
-    
+    #y_h = h1_mask / np.mean(h1_mask)
+    #y_c = c1_mask / np.mean(c1_mask)
+    #tt = tt_mask.copy()
+    mri14 = mri14_correct / np.mean(mri14_correct)
+
     ### first derivatives : change in flux over time : speed 
     #   zero = peaks and troughs of lightcurve : positive and negative = slope of lightcurve
     print('==== getting first derivative ====')
-    t_h, dy_h, rejected_dh = get_derivative(tt, y_h, 6., even_sampling=True)
-    t_c, dy_c, rejected_dc = get_derivative(tt, y_c, 6., even_sampling=True)
-    print('lost for lack of neighbors: ' + str(rejected_dh) + ',' + str(rejected_dc))
+    #t_h, dy_h, rejected_dh = get_derivative(tt, y_h, 6., even_sampling=True)
+    #t_c, dy_c, rejected_dc = get_derivative(tt, y_c, 6., even_sampling=True)
+    tm, dym, reject_dm = get_derivative(mri_date, mri14, 6., even_sampling=True, num_samples=30000)
+    
+    #print('lost for lack of neighbors: ' + str(rejected_dm))
     # look for the zeros
-    zeros1_h= np.squeeze( find_zeros(dy_h) )
-    zeros1_c= np.squeeze( find_zeros(dy_c) )
+    #zeros1_h= np.squeeze( find_zeros(dy_h) )
+    #zeros1_c= np.squeeze( find_zeros(dy_c) )
+    zeros1_m= np.squeeze( find_zeros(dym) )
     ### second derivatives : change in flux speed over time : acceleration 
     #   zero = inflection points in lightcurve : positive and negative = concavity (up and down) of lightcurve ###
     print('==== getting second derivative ====')
-    tt_h, ddy_h, rejected_ddh = get_derivative(t_h, dy_h, 6.) #, even_sampling=True)
-    tt_c, ddy_c, rejected_ddc = get_derivative(t_c, dy_c, 6.) #, even_sampling=True)
-    print('lost for lack of neighbors: ' + str(rejected_ddh) + ',' + str(rejected_ddc))
+    #tt_h, ddy_h, rejected_ddh = get_derivative(t_h, dy_h, 6.) #, even_sampling=True)
+    #tt_c, ddy_c, rejected_ddc = get_derivative(t_c, dy_c, 6.) #, even_sampling=True)
+    ttm, ddym, reject_ddm = get_derivative(tm, dym, 6., even_sampling=True, num_samples=30000)
+    #print('lost for lack of neighbors: ' + str(rejected_ddh) + ',' + str(rejected_ddc))
     #zeros2_c= find_zeros(ddy_c)
     #zeros2_h= find_zeros(ddy_h)
-    zeros2_h= np.squeeze( find_zeros(ddy_h) )
-    zeros2_c= np.squeeze( find_zeros(ddy_c) )
+    #zeros2_h= np.squeeze( find_zeros(ddy_h) )
+    #zeros2_c= np.squeeze( find_zeros(ddy_c) )
+    zeros2_m= np.squeeze( find_zeros(ddym) )
     #print(len(tt_h),len(ddy_h))
     ### third derivatives : change in flux acceleration : jerk
     print('==== getting third derivative ====')
-    ttt_h, dddy_h, rejected_dddh = get_derivative(tt_h, ddy_h, 2.) #, even_sampling=True)
-    ttt_c, dddy_c, rejected_dddc = get_derivative(tt_c, ddy_c, 2.) #, even_sampling=True)
-    print('lost for lack of neighbors: ' + str(rejected_dddh) + ',' + str(rejected_dddc))
-    zeros3_h= find_zeros(dddy_h)
-    zeros3_c= find_zeros(dddy_c)
+    #ttt_h, dddy_h, rejected_dddh = get_derivative(tt_h, ddy_h, 2.) #, even_sampling=True)
+    #ttt_c, dddy_c, rejected_dddc = get_derivative(tt_c, ddy_c, 2.) #, even_sampling=True)
+    tttm, dddym, reject_dddm = get_derivative(ttm, ddym, 2., even_sampling=True, num_samples=30000)
+    #print('lost for lack of neighbors: ' + str(rejected_dddh) + ',' + str(rejected_dddc))
+    #zeros3_h= find_zeros(dddy_h)
+    #zeros3_c= find_zeros(dddy_c)
+    np.save('mri_deriv.npy',mri14)
+    np.save('mri_date.npy',mri_date)
     
+    #plot_line( [[mri_date, mri14],[tm,dym]] )
+    print( tm[zeros1_m] )
+    plt.plot( mri_date, mri14, label='mri data' )
+    plt.plot( tm, dym/np.mean(dym), label='1-deriv' )
+    #plt.plot( ttm, ddym, label='2-deriv' )
+    plt.vlines( tm[zeros1_m], linewidth=0.7, ymin=-5., ymax=5. )
+    plt.show()
     #### work with the zeros ####
     #print(t_c[np.squeeze(zeros1_c)])
-    t_zero_h = t_h[ zeros1_h ]
-    t_zero_c = t_c[ zeros1_c ]
-    t_zero_h2 = tt_h[ zeros2_h ]
-    t_zero_h2 = tt_h[ zeros2_h ]
-    
-    np.save("times_zeros_h.npy",t_zero_h)
-    np.save("times_zeros_c.npy",t_zero_c)
-    #np.save("times_zeros_h2.npy",t_zero_h2)
-    #np.save("times_zeros_c2.npy",t_zero_c2)
-    #print(np.sum(tt_h - t_h))
-    #print(np.sum(tt_c-t_c))000
-    np.save("times_for_derivatives.npy",t_c)
-    np.save("times_indexes_h1.npy",zeros1_h)
-    np.save("times_indexes_c1.npy",zeros1_c)
-    np.save("times_indexes_h2.npy",zeros2_h)
-    np.save("times_indexes_c2.npy",zeros2_c)
-    np.save("lc_deri2_h.npy", ddy_h)
-    np.save("lc_deri2_c.npy", ddy_c)
-    
+    #t_zero_h = t_h[ zeros1_h ]
+    #t_zero_c = t_c[ zeros1_c ]
+    #t_zero_h2 = tt_h[ zeros2_h ]
+    #t_zero_h2 = tt_h[ zeros2_h ]
+    """
     header1 = 'times of H2O 1st derivative zero crossings (before crossing): made by derivative.py'
-    with open('lc_1deri_h.txt','w') as fil:
+    with open('lc_1deri_h-wild.txt','w') as fil:
         fil.write(header1 + '\n')
         for ih in range(np.size(zeros1_h)):
             fil.write( f"{ t_zero_h[ ih ]}\n" )
         pass
     header2 = 'times of CO2 1st derivative zero crossings (before crossing): made by derivative.py'
-    with open('lc_1deri_c.txt','w') as fil:
+    with open('lc_1deri_c-wild.txt','w') as fil:
         fil.write(header2 + '\n')
         for ih in range(np.size(zeros1_c)):
             fil.write( f"{ t_zero_c[ ih ]}\n" )
@@ -258,7 +274,9 @@ if __name__ == '__main__':
     #ax.vlines(eventime[resuh],linewidth=0.7, color='red', ymin=-5., ymax = 5.)
     ax.legend(loc='best')
     plt.show()
-
+    """
+    #np.
+    print('end')
 else:
     pass
 

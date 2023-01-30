@@ -259,62 +259,71 @@ if __name__ == '__main__':
             pass
         print('Complete. Quitting...')
         #quit()
+    elif option_1 == '4':
+        #create and save a select few images
+        peaks_i = np.load('results_code/peak_indeces.npy').astype(int)
+        #peaks_i[ h2o/co2, peak/trough, 6 cycles, 3 peaks per cycle ]
+        save_locs = ['pngs_peaks1/','pngs_peaks2/','pngs_peaks3/','pngs_trous1/','pngs_trous2/','pngs_trous3/']
+        gas_name =  ['h2o','co2' ]
+        cycle_name = [ 'A','B','C','D','E','F'] 
+        #peaks
+        for j in (0,1,2): #running over 3 peaks in the cycles
+            for i in range(2): #running over h2o and co2
+                for h in range(6): #running though 6 cycles
+                    topic = peaks_i.copy()[i,0,h,j]
+                    if topic == -9999:
+                        #do nothing
+                        print('miss')
+                        pass
+                    else:
+                        picture = centering(a['directory path'].copy()[topic], topic, usemap='/cube_gasmaps_final_enhance_v7.fit', plot_it=False, save_plot=False, figdpi=140, scaling='root',vmin_fact=0.07)
+                        fig,ax = plt.subplots()
+                        fig.dpi=140
+                        if i==0: ii = 2
+                        elif i==1: ii = 1
+                        ax.imshow(picture[:,:,ii],origin='lower',cmap='inferno')
+                        if a['x-nucleus'][topic] == 0.0 or a['y-nucleus'][topic] == 0.0:
+                            ax.set_title(f"{a['julian date'][topic]:.3f} | {a['DOY'][topic]}.{a['exposure id'][topic]} | no nucleus")
+                        else:
+                            ax.set_title(f"{a['julian date'][topic]:.3f} | {a['DOY'][topic]}.{a['exposure id'][topic]}")
+                        figdat = {'Author':'Antoine Darius','Software':'gasimaging.py'}
+                        plt.savefig("results_code/" + save_locs[j]+ gas_name[i] + "_" + cycle_name[h] + ".png",metadata=figdat,bbox_inches='tight',dpi=fig.dpi)
+                        #plt.show(block=True)
+                        plt.close()
+                    pass
+                pass
+            pass
+        for j in (3,4,5): #running over 3 troughs
+            for i in range(0,1): #h2o/co2
+                for h in range(6):
+                    topic = peaks_i.copy()[i,1,h,j-3]
+                    if topic == -9999:
+                        #do nothing
+                        print('miss')
+                        pass
+                    else:
+                        picture = centering(a['directory path'].copy()[topic], topic, usemap='/cube_gasmaps_final_enhance_v7.fit', plot_it=False, save_plot=False, figdpi=140, scaling='root',vmin_fact=0.07)
+                        fig,ax = plt.subplots()
+                        fig.dpi=140
+                        if i==0: ii = 2
+                        elif i==1: ii = 1
+                        ax.imshow(picture[:,:,ii],origin='lower',cmap='inferno')
+                        if a['x-nucleus'][topic] == 0.0 or a['y-nucleus'][topic] == 0.0:
+                            ax.set_title(f"{a['julian date'][topic]:.3f} | {a['DOY'][topic]}.{a['exposure id'][topic]} | no nucleus")
+                        else:
+                            ax.set_title(f"{a['julian date'][topic]:.3f} | {a['DOY'][topic]}.{a['exposure id'][topic]}")
+                        figdat = {'Author':'Antoine Darius','Software':'gasimaging.py'}
+                        plt.savefig("results_code/" + save_locs[j] + gas_name[i] + "_" + cycle_name[h] + ".png",metadata=figdat,bbox_inches='tight',dpi=fig.dpi)
+                        #plt.show(block=True)
+                        plt.close()
+                    pass
+                pass
+            pass
+        pass
     else:
         #nothing here
         pass
 else:
     #module things?
     pass
-
-
-#no longer necessary directs = directs[1:]                       #getting rid of first entry, parent directory
-#do = rgb(directs[227,1],directs[227,0],plot_it=True,save_plot=False)
-#rgb("/chiron4/antojr/calibrated_ir/306.4000031",202,plot_it=True)
-""" #testing centering method
-pair = []
-nuke = []
-ysize = []
-for i in range(277,279):
-    pair.append(rgb(directs[i,1],directs[i,0]))
-    nuke.append( (int(a['x-nucleus'][i])-170, int(a['y-nucleus'][i])) )
-    ysize.append( a['number frames'][i] )
-#print(ysize[1])
-
-bigs = np.zeros((131,181,3,2),dtype=float)
-bigs[65-nuke[0][1]:65+ysize[0]-nuke[0][1],90-nuke[0][0]:176-nuke[0][0],:,0] = pair[0].copy()
-bigs[65-nuke[1][1]:65+ysize[1]-nuke[1][1],90-nuke[1][0]:176-nuke[1][0],:,1] = pair[1].copy()
-"""
-#bigs = centering(directs[210,1],directs[210,0],plot_it=True)
-
-#fig,ax = plt.subplots()
-#fig.dpi=120
-#ax.imshow(bigs,origin='lower')
-#plt.show()
-### for batch saving with ocassional(sp?) plotting
-"""
-for i in range(0,1321):
-    print(i)
-    if i%100 == 0:
-        centering(directs[i,1],directs[i,0],save_plot=True,plot_it=True,red=True,grn=True,blu=True)
-    else:
-        centering(directs[i,1],directs[i,0],save_plot=True,red=True,grn=True,blu=True)
-    pass
-
-"""
-# for batch plotting
-#"""
-#"""
-#scaling dust down so the level of h2o far from comet
-#dustscaled = dust *scl
-#scl = dustscaled/dust
-#just checking
-
-
-#uhhh in my experience [wavelength 512 / gas species 3, ysize #frames in scan, xsize 256]
-
-#fig,(ax1,ax2,ax3,ax4) = plt.subplots(4,1,sharex=True,sharey=True)
-#ax2.imshow(goku[:,:,0],cmap="Reds",origin='upper')
-#ax3.imshow(goku[:,:,1],cmap="Greens",origin='upper')
-#ax4.imshow(goku[:,:,2],cmap="Blues",origin='upper')
-
 

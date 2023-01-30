@@ -4,7 +4,7 @@
 ####################################################################################################################
 import numpy as np #love her
 from astropy.io import fits
-from cometmeta import a
+#from cometmeta import a
 def getScanInfo(scan_index):
     global a
     dat = a[scan_index]
@@ -48,23 +48,39 @@ def selector(scanno,runinfo=False):
     ### i was checking for length first but i should see if this a
     ### a number or a directory path
     #so
+    #if np.isnan(scanno): 
+    #    print('Entry was Nan')
+    #    return -9999
     try:
-        if int(float(scanno)) <= 1320 and int(float(scanno)) >= 0:                        #expecting this to break
-            #then its an INDEX
-            scan_i = int(scanno)
-            if runinfo: getScanInfo(scan_i)
-            return scan_i
-        elif float(scanno) >= 2455494.0 and float(scanno) <= 2455519.0:     #this will break?
-            #then its a JULIAN DATE
-            scan_i = jd2index(float(scanno),runinfo=runinfo)
-            return scan_i
-        else:
-            #then its some random number
-            selector_tutorial()
+        try: #looking out for nans
+            if np.isnan(scanno): 
+                print('Entry was Nan')
+                return -9999
+        except TypeError:   #input was a string
+            pass            #continue with the rest
+        except:
+            print('Unexpected Error')
             return -9999
+        else: #no nans, try all the number stuff
+            if int(float(scanno)) <= 1320 and int(float(scanno)) >= 0:                        #expecting this to break
+                #then its an INDEX
+                scan_i = int(scanno)
+                if runinfo: getScanInfo(scan_i)
+                return scan_i
+            elif float(scanno) >= 2455494.0 and float(scanno) <= 2455519.0:     #this will break?
+                #then its a JULIAN DATE
+                scan_i = jd2index(float(scanno),runinfo=runinfo)
+                return scan_i
+            else:
+                #then its some random number
+                selector_tutorial()
+                return -9999
     except ValueError:
         #then it broke the int/float functions, prob non-numerical input
         pass
+#    except TypeError:
+#        #probably a nan
+#        return
     except:
         #i don't know what went wrong, return error values
         print("Error unexpected. Cool!")
@@ -124,5 +140,6 @@ def selector_tutorial():
     print("Or DOY and Exposure ID like: '307 4200021'")
     print("Or the directory path:       /chiron4/ant...")
     return
+a = np.load('a_cometmeta.npy')
 pass
 

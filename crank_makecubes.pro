@@ -5,7 +5,8 @@ pro makecubes
 filez = file_search("/chiron4/antojr/calibrated_ir/*")
 n_scans = n_elements(filez)
 ;loop
-for i=0,n_scans-1 do begin
+;6 Sept 2022, first run was halted at 314.4200013_, running again from there [638]
+for i=638,n_scans-1 do begin
 fname = filez[i]
 a = strsplit(fname,'/',/extract)
 b = strsplit(a[3],'.',/extract)

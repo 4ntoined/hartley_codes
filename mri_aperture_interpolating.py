@@ -55,7 +55,7 @@ fig,ax = plt.subplots()
 fig.figsize = (10,5.625)
 fig.dpi = 140
 
-ax.scatter(hri_time[215:230],y_4[215:230],label="mri flux",color="orange")
+ax.scatter(hri_time[215:230],y_3[215:230],label="mri flux",color="orange")
 #ax.set_xlim()
 #ax.set_ylim()
 ax.legend(loc="best")

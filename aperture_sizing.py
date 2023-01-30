@@ -3,7 +3,7 @@
 
 import numpy as np
 from matplotlib import pyplot as plt
-from playingwithdata import a
+from cometmeta import a
 
 def sizeToRadius(apsize):
     ra = apsize/2
@@ -16,9 +16,10 @@ errrs = np.load('aperror_424800m.npy')
 
 ###
 y_pscale_km = a['pixel scale'] / 1e3
-view = 1.41600e5
-ap_size = view / a['pixel scale']
-
+view = 4.24800e5 #meters
+ap_size = view / a['pixel scale'] #number of pixels needed for view
+np.save('apsizes_424km_floats.npy',ap_size)
+'''
 sizer = np.array(ap_size,dtype=int)
 rads = sizeToRadius(sizer)
 rads = rads.astype(int)
@@ -28,14 +29,14 @@ outt.write("jd, aperture size, radius #for a 150km view\n")
 for i in range(len(sizer)):
     outt.write(f"{a['julian date'][i]} {sizer[i]} {rads[i]}\n")
 outt.close()
-
-print(np.argwhere(apers > 3))
+'''
+#print(np.argwhere(apers > 3))
 
 fig,ax = plt.subplots()
 fig.figsize = (8,4.5)
 fig.dpi = 140
 
-ax.scatter(a['julian date'],apers,color="green",s=.7)
+ax.scatter(a['julian date'],ap_size,color="green",s=.7)
 #ax.set_xlim((2455504.5,2455519.5))
 #ax.set_yticks(np.arange(0,27))
 #ax.set_title("aperture size for 150km view")
