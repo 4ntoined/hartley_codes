@@ -150,12 +150,17 @@ def measure_gas(spect, waves, spectrum_scani=0, xy=(-99,-99), demo=False, resist
             ax1.vlines((h1,h2,c1,c2),ymin=0,ymax=0.0014,color='k')
         inta, intb = intab
         #do sum instead of trapz here#
-        gas = np.trapz(gasline[inta:intb],x=wavo[inta:intb])
+        #gas = np.trapz(gasline[inta:intb],x=wavo[inta:intb])
+        gassum = np.sum( gasline[inta:intb] )
+        gasdx = wavo[ inta+1 ] - wavo[ inta ]
+        gas = gassum * gasdx
         two.append(gas)
     np.savez('/home/antojr/codespace/continuum.npz', hwaves=saving_more[0], hcon=saving_more[1], cwaves=saving_more[2], ccon=saving_more[3])
     #############  dust  ###############
     wave_d = waves[duss:dusl+1]
-    dus = np.trapz( spect[duss:dusl+1], x=wave_d)
+    #dus = np.trapz( spect[duss:dusl+1], x=wave_d)
+    dassum = np.sum(spect[duss:dusl+1] )
+    dusdx = wave_d[1] - wave_d[0]
     ########## still plotting #################
     if demo:
         concern = np.nanmin( np.argwhere(waves > 2.2) )
