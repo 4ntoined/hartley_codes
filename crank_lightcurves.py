@@ -6,9 +6,10 @@
 import os
 import numpy as np
 import astropy.io.fits as fits
+from resistant_mean_nan import resistant_mean
 #from cometmeta import a
 #
-def getGases(gasmapARRAY, xnuke, ynuke, apertureradius, s, overspill):
+def getGases(gasmapARRAY, xnuke, ynuke, apertureradius, s, overspill, sigma_cutoff=2.5):
     h2o = gasmapARRAY[0,:,:].copy()
     co2 = gasmapARRAY[1,:,:].copy()
     dus = gasmapARRAY[2,:,:].copy()
@@ -54,12 +55,35 @@ def getGases(gasmapARRAY, xnuke, ynuke, apertureradius, s, overspill):
             res = ia + ix
             ress.append(res)
         ### use RESISTANT MEAN ###
-        h_sum = np.nansum(ress[0])
-        c_sum = np.nansum(ress[1])
-        d_sum = np.nansum(ress[2])
+        #x_sum = ( ress )
+        means = []
+        sigs = []
+        nrej = []
+        apsize = s
+        for i in range(3): 
+            onemean, onesigma, numrej = resistant_mean( ress[i], sigma_cutoff )
+            means.append(onemean)
+            sigs.append(onesigma)
+            nrej.append(numrej)
+        #hmean, cmean, dmean = means
+        hsig, csig, dsig = sigs
+        hrej, crej, drej = nrej
+        # turn means into sums by using aperture size and number of rejected pixels
+        sums = []
+        for i in range(3): sums.append( means[i] * apsize**2  )
+        hsum, csum, dsum = sums
+        hpack = (hsum, hsig, hrej)
+        cpack = (csum, csig, crej)
+        dpack = (dsum, dsig, drej)
+        #
+        #h_sum = np.nansum(ress[0])
+        #c_sum = np.nansum(ress[1])
+        #d_sum = np.nansum(ress[2])
     else:
-        h_sum, c_sum, d_sum = (0.,0.,0.)
-    return h_sum, c_sum, d_sum, clipd
+        hpack = (0.0, 0.0, 0)
+        cpack = (0.0, 0.0, 0)
+        dpack = (0.0, 0.0, 0)
+    return hpack, cpack, dpack, clipd
 def sortDires(row):     #key for sorting directories by time data were taken
     cal = fits.open(row+"/dal_001.fit")
     tym = cal[0].header["OBSMIDJD"]
@@ -84,27 +108,34 @@ if __name__ == '__main__':
     errs2 = a_radi - a_radi_floor
     #empty list to fill with lightcurve data
     masterMap = []
-    curve_filename = 'gascurves_x5-wild.txt'
+    curve_filename = 'gascurves_x6.txt'
     curve_filepath = '/home/antojr/stash/datatxt/'
-    header_note = '424800m aperture, no corrections, interpolated aperture, uses v8 gasmaps, made by crank_lightcurves'
+    header_note = '424800m aperture, no corrections, interpolated aperture,'+\
+        'uses v8 gasmaps, made by crank_lightcurves, resisting_mean, more data'
     sta, sto = (0, 1321)
     prog_counter=1
     with open(curve_filepath + curve_filename,"w") as fil:
-        fil.write("jd, h2o, co2, dust, clipped flag // " + header_note + "\n")
+        fil.write("jd, h2o, co2, dust, h-error, c-error, d-error, h-rej, c-rej, d-rej, clipped flag // " + header_note + "\n")
         for i in range(sta,sto):
+            #open the gas maps
             mapp = fits.open(dire[i]+"/cube_gasmaps_final_enhance_v8.fit")    #gen 3 maps
             mapp = mapp[0].data
-            h2o , co2, dus, clip_flag = getGases(mapp, xlocs[i], ylocs[i], a_radi_ceils[i], a_size[i], errs2[i])#a_radius, a_diamet) #a['aperture radius'][i] #a['aperture size'][i]
-            masterMap.append( (h2o,co2,dus,int(clip_flag) ))
-            fil.write(f"{a['julian date'][i]} {h2o} {co2} {dus} {int(clip_flag)}\n")
+            #measure the gases and whatever
+            h2o, co2, dus, clip_flag = getGases(mapp, xlocs[i], ylocs[i], a_radi_ceils[i], a_size[i], errs2[i])
+            #getting it all together for the data array
+            masterMap.append(( h2o[0],co2[0],dus[0],h2o[1],co2[1],dus[1],h2o[2],co2[2],dus[2],int(clip_flag) ))
+            fil.write(f"{a['julian date'][i]} {h2o[0]} {co2[0]} {dus[0]} " +\
+                f"{h2o[1]} {co2[1]} {dus[1]} {int(h2o[2])} {int(co2[2])} {int(dus[2])} {int(clip_flag)}\n")
             if (i-sta)/(sto-sta) >= prog_counter * 0.1 :
                 print(f'{(i-sta)/(sto-sta)*100.:.3f}% complete...')
                 prog_counter+=1
             pass
         print('.txt file produced.')
-    gastype = np.dtype([ ('h2o','f8'),('co2','f8'),('dust','f8'),('clip flag','i4') ])
+    gastype = np.dtype([ ('h2o','f8'),('co2','f8'),('dust','f8'), \
+            ('h error','f8'),('c error','f8'),('d error','f8'), ('num hrej','i4'),('num crej','i4'),\
+            ('num drej','i4'), ('clip flag','i4') ])
     gascurves = np.array(masterMap,dtype=gastype)
-    np.save('results_code/gascurves_x5-wild.npy',gascurves)
+    np.save('results_code/gascurves_x6.npy', gascurves)
     print('.npy array saved.')
 else:
     pass
