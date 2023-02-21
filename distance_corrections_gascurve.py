@@ -1,56 +1,114 @@
 #Antoine
+#distance_corrections_gascurve
 #gonna use this to make the necessary corrections to my fixed phys. size aperture
 
 import numpy as np
 from matplotlib import pyplot as plt
-#from cometmeta import a
+from scipy.interpolate import interp1d
 from datafunctions import selector
 from making_plots import plot_scatter
 
-def figg():
-    fig,ax = plt.subplots()
-    fig.figsize=(10,6)
-    fig.dpi=140   
-    return fig, ax
-def axxx(figgs, axxs, ymax=1., d1=2455512.5, d2=2455514.5):
+def masking(data,flg):
+    """
+    data: np.ndarray shaped (1321,)
+    flg: array like (1321) boolean of what to mask
+    """
+    global a
+    #setting the flags and mask
+    ap_flag = flg.astype(bool)
+    good_mask = ~ap_flag
+    #applying the mask to the given array
+    datam = data[good_mask].copy()
+    return datam
+#def figg():
+    #fig,ax = plt.subplots()
+    #fig.figsize=(10,6)
+    #fig.dpi=140   
+    #return fig, ax
+#def axxx(figgs, axxs, ymax=1., d1=2455512.5, d2=2455514.5):
     #axxs.hlines((0.),xmin=297,xmax=322,label="zero",color='k',linewidth=0.6,zorder=1)
-    axxs.hlines((0.),xmin=297.,xmax=322.,label="zero",color='k',linewidth=0.6,zorder=1)
-    axxs.set_xlim(d1,d2)
-    axxs.set_ylim(None, ymax)#-8e-6,ymax)#-ymax*0.07, ymax)
+    #axxs.hlines((0.),xmin=297.,xmax=322.,label="zero",color='k',linewidth=0.6,zorder=1)
+    #axxs.set_xlim(d1,d2)
+    #axxs.set_ylim(None, ymax)#-8e-6,ymax)#-ymax*0.07, ymax)
     #axxs.set_ylim(-ymax*0.07, ymax)#-8e-6,ymax)#-ymax*0.07, ymax)
-    axxs.legend(loc="best")
-    axxs.set_xlabel("Day of year")
-    axxs.set_ylabel("Flux [$\propto W/m^2$]")
+    #axxs.legend(loc="best")
+    #axxs.set_xlabel("Day of year")
+    #axxs.set_ylabel("Flux [$\propto W/m^2$]")
     #axxs.set_ylabel("$CO_2$/$H_2O$")
     #ax.set_title("")
-    return
+    #return
+
 a = np.load('a_cometmeta.npy')
 if __name__ == '__main__':
-    
+    ####################################################################################
+    ########### GASES ###########
     ## load up the lc
-    #curveset1 = np.loadtxt('/home/antojr/stash/datatxt/gascurves_x5.txt',dtype=float,skiprows=1)
-    #curveset2 = np.loadtxt()
-    #usecurve = curveset1
-    #datez, ha, ca, da, fa = usecurve[:,0],usecurve[:,1],usecurve[:,2],usecurve[:,3],usecurve[:,4]
     uncorrect_curves = np.load('/home/antojr/codespace/results_code/gascurves_x5.npy')
     ha, ca, da, flag_a = uncorrect_curves['h2o'].copy(),uncorrect_curves['co2'].copy(),uncorrect_curves['dust'].copy(),uncorrect_curves['clip flag'].copy()
     #print(uncorrect_curves[0])
-    
-
-
+    ## MASKING ## throwing out the clipped or no nucleus points
+    go1 = [] 
+    for i in (ha, ca, da, a): go1.append( masking(i, flag_a)   )
+    hd,cd,dd,ad = go1
+    #
+    ## STERADIANS ## correcting for correct pixel size for unit purposes 1e-10 steradians per pixel
+    steradians = []
+    for i in (hd,cd,dd): steradians.append( i*1e-10 )
+    hc, cc, dc = steradians
+    ## DISTANCE CORRECTION ## correcting for distance flux etc
     correcting = []
-    dist_squared = a['comet dist'].copy()**2
-    for i in (ha,ca,da): correcting.append( i * dist_squared )
+    #f it, we ball
+    # 4(pi)D^2
+    dist_correct = 4.*np.pi* ad['comet dist'].copy() **2. #this will undo the /m^2 in the lightcurves, returning just W
+    for i in (hc,cc,dc): correcting.append( i * dist_correct )
     hb, cb, db = correcting
-    #for i in range(1321):
-    correcter = [ (hb[i],cb[i],db[i],flag_a[i]) for i in range(1321) ]
-    correct_curves = np.array( correcter, dtype=uncorrect_curves.dtype)
-    print(correct_curves[0])
-    #np.save('results_code/gascurves_x5-correct-wild.npy',correct_curves)
+    ## PACKING AND SAVING RESULTS ##
+    correcter = [ (hb[i],cb[i],db[i]) for i in range(len(cb)) ]
+    gastype = np.dtype([ ('h2o','f8'),('co2','f8'),('dust','f8') ])
+    correct_curves = np.array( correcter, dtype=gastype)
+    #print(correct_curves[0])
+    save_gas=False
+    save_cometmeta=False
+    if save_gas: np.save('/home/antojr/codespace/results_code/gascurves_x5-eorrect-wild.npy',correct_curves)
+    if save_cometmeta: np.save('/home/antojr/codespace/a2_cometmeta.npy-wild', ad)
+    ####################################################################################
+    ######### MRI ##############
+    mridata = np.load('results_code/mri_aperturedata_3.npy')
+    #mri_date = mridata['date'].copy()
+    #mrii = mridata[ mri.dtype.names[4:17] ].copy()    #mri stuff minus the julian date
+    # correcting distance on mri #
+    #dist = a['comet dist'].copy()
+    dist_interp = interp1d( a['julian date'], a['comet dist'], kind='linear', bounds_error=False, fill_value='extrapolate')
+    dist_onmri = dist_interp( mridata['date'] )
+    #mri14_correct = mri_14 * dist_onmri
+    #
+    mri_correct = []
+    mri_correct1 = [ mridata['date'].reshape(-1,1) ]
+    for i in range(4,17):
+        mri_correct.append( mridata[ mridata.dtype.names[i] ] * dist_onmri )
+        resu = mridata[ mridata.dtype.names[i] ] * dist_onmri
+        mri_correct1.append( resu.reshape(-1,1) )
+    goo1 = np.concatenate( mri_correct1, axis=1 )
+    #goo = np.array(mri_correct)
+    #goo1 = np.array(mri_correct1,)
+    #print(goo.shape)
+    #print(goo1[1])
+    goo2 = [ tuple(goo1[i]) for i in range(len(goo1)) ] 
+    #goo2 = np.array(goo2)
+    #print(goo2[2])
+    #for i in range(len(goo1)):
+    dtyp = np.dtype([ ('date','f8'),\
+        ('3-pix','f8'),('4-pix','f8'),('5-pix','f8'),('6-pix','f8'),('7-pix','f8'),\
+        ('8-pix','f8'),('9-pix','f8'),('10-pix','f8'),('12-pix','f8'),('14-pix','f8'),\
+        ('16-pix','f8'),('18-pix','f8'),('20-pix','f8') ])
+    newmri = np.array(goo2,dtype=dtyp)
+    #print(newmri['14-pix'])
+    save_mri=True
+    if save_mri: np.save('results_code/mri_dorrect.npy',newmri)
 
-    day_of_encounter = 2455505.0831866
-    doe = day_of_encounter
-    plot_scatter([ [a['julian date']-doe, ca/np.mean(ca)],[ a['julian date']-doe, cb/np.mean(cb) ] ],labels=['uncorrect','correct'], make_label=True)
+    #day_of_encounter = 2455505.0831866
+    #doe = day_of_encounter
+    #plot_scatter([ [a['julian date']-doe, cc],[ a['julian date']-doe, cb ] ],labels=['steraded','fully correct'], make_label=True)
     #saving our creations
     #correcter = np.ones((1321,4))
     #print(hb[0])

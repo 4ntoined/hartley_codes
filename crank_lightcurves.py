@@ -29,10 +29,12 @@ def getGases(gasmapARRAY, xnuke, ynuke, apertureradius, s, overspill):
     #    c_clip = co2[ynuke-apertureradius:ynuke+apertureradius,xnuke-apertureradius:xnuke+apertureradius]
     #    d_clip = dus[ynuke-apertureradius:ynuke+apertureradius,xnuke-apertureradius:xnuke+apertureradius]
     if not clipd: #only continue if data is not clipped
-                           #odd
-        h_clip = h2o[ynuke-apertureradius:ynuke+apertureradius+1,xnuke-apertureradius:xnuke+apertureradius+1] #apertures with integer radius just greater than necessary
-        c_clip = co2[ynuke-apertureradius:ynuke+apertureradius+1,xnuke-apertureradius:xnuke+apertureradius+1]
-        d_clip = dus[ynuke-apertureradius:ynuke+apertureradius+1,xnuke-apertureradius:xnuke+apertureradius+1]
+        h_clip = h2o[ynuke-apertureradius:ynuke+apertureradius+1,\
+            xnuke-apertureradius:xnuke+apertureradius+1] #apertures with integer radius just greater than necessary
+        c_clip = co2[ynuke-apertureradius:ynuke+apertureradius+1,\
+            xnuke-apertureradius:xnuke+apertureradius+1]
+        d_clip = dus[ynuke-apertureradius:ynuke+apertureradius+1,\
+            xnuke-apertureradius:xnuke+apertureradius+1]
         #isolate the borders of the (too big) aperture
         #border_aps = []
         ress = []
@@ -51,6 +53,7 @@ def getGases(gasmapARRAY, xnuke, ynuke, apertureradius, s, overspill):
             #borders in ix are zeroed out, borders in ia are corrected, we add
             res = ia + ix
             ress.append(res)
+        ### use RESISTANT MEAN ###
         h_sum = np.nansum(ress[0])
         c_sum = np.nansum(ress[1])
         d_sum = np.nansum(ress[2])
@@ -81,7 +84,7 @@ if __name__ == '__main__':
     errs2 = a_radi - a_radi_floor
     #empty list to fill with lightcurve data
     masterMap = []
-    curve_filename = 'gascurves_x5.txt'
+    curve_filename = 'gascurves_x5-wild.txt'
     curve_filepath = '/home/antojr/stash/datatxt/'
     header_note = '424800m aperture, no corrections, interpolated aperture, uses v8 gasmaps, made by crank_lightcurves'
     sta, sto = (0, 1321)
@@ -101,7 +104,7 @@ if __name__ == '__main__':
         print('.txt file produced.')
     gastype = np.dtype([ ('h2o','f8'),('co2','f8'),('dust','f8'),('clip flag','i4') ])
     gascurves = np.array(masterMap,dtype=gastype)
-    np.save('results_code/gascurves_x5.npy',gascurves)
+    np.save('results_code/gascurves_x5-wild.npy',gascurves)
     print('.npy array saved.')
 else:
     pass

@@ -53,28 +53,28 @@ def selector(scanno,runinfo=False):
     #    return -9999
     try:
         try: #looking out for nans
-            if np.isnan(scanno): 
-                print('Entry was Nan')
+            if np.isnan(scanno): #if nan, return error
+                print('Entry was Nan') 
                 return -9999
         except TypeError:   #input was a string
-            pass            #continue with the rest
-        except:
+            pass # move on
+        except: #not sure about error, returning error
             print('Unexpected Error')
             return -9999
-        else: #no nans, try all the number stuff
-            if int(float(scanno)) <= 1320 and int(float(scanno)) >= 0:                        #expecting this to break
-                #then its an INDEX
-                scan_i = int(scanno)
-                if runinfo: getScanInfo(scan_i)
-                return scan_i
-            elif float(scanno) >= 2455494.0 and float(scanno) <= 2455519.0:     #this will break?
-                #then its a JULIAN DATE
-                scan_i = jd2index(float(scanno),runinfo=runinfo)
-                return scan_i
-            else:
-                #then its some random number
-                selector_tutorial()
-                return -9999
+        #nan check is passed, we probe strings for numbers now
+        if int(float(scanno)) <= 1320 and int(float(scanno)) >= 0:   #expecting this to break
+            #then its an INDEX
+            scan_i = int(scanno)
+            if runinfo: getScanInfo(scan_i)
+            return scan_i
+        elif float(scanno) >= 2455494.0 and float(scanno) <= 2455519.0:     #this will break?
+            #then its a JULIAN DATE
+            scan_i = jd2index(float(scanno),runinfo=runinfo)
+            return scan_i                            
+        else:
+            #then its some random number
+            selector_tutorial()
+            return -9999
     except ValueError:
         #then it broke the int/float functions, prob non-numerical input
         pass
@@ -120,7 +120,8 @@ def selector(scanno,runinfo=False):
 def selector_prompt(runinfo=False, default='2455504.510'):
     #selector with prompt
     given = input("Which scan: ") or default
-    return selector(given,runinfo=runinfo)
+    #ans = selector(given, runinfo=runinfo)
+    return selector(given, runinfo=runinfo)
 def unloadCube(scan_index, cubename='', wavename=''):
     global a
     cubo = fits.open( a['directory path'][scan_index] + '/' + cubename )

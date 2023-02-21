@@ -79,10 +79,16 @@ fig.figsize=(12,5.5)
 
 #ax.scatter(range(5),peak1s[:,0,0], label='h2o peak 1', color='cornflowerblue' )
 #ax.scatter(range(5),peak1s[:,1,0], label='co2 peak 1', color='green' )
-#ax.scatter(range(6),peak1diff, label='peak 1 diffs', color='purple' )
-#ax.scatter(range(6),peak2diff, label='peak 2 diffs', color='red' )
-#ax.scatter(range(6),peak3diff, label='peak 2 diffs', color='goldenrod' )
+ax.scatter(range(6),peak1diff, label='peak 1 diffs', color='purple' )
+ax.scatter(range(6),peak2diff, label='peak 2 diffs', color='red' )
+ax.scatter(range(6),peak3diff, label='peak 2 diffs', color='goldenrod' )
 
+ax.legend(loc='best')
+plt.show()
+
+fig,ax = plt.subplots()
+fig.dpi=140
+fig.figsize=(12,5.5)
 ax.scatter(range(6),trou1diff, label='trough 1 diffs', color='purple' )
 ax.scatter(range(6),trou2diff, label='trough 2 diffs', color='red' )
 ax.scatter(range(6),trou3diff, label='trough 3 diffs', color='goldenrod' )
