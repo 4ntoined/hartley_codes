@@ -1,7 +1,12 @@
 #Antoine
 #light curves for the volatiles
-#Antoine much later
 #cranking this up
+#so up until this point we have been evaluating the gases in the aperture using
+#a straight (nan)sum, i think at some point we used the (nan)mean
+#now we are using the resistant mean
+#the first iteration of this did the res-mean on the whole aperture
+#the next will use the res-mean on the two parts of the aperture, core +
+#border separately and add the results
 
 import os
 import numpy as np
@@ -39,39 +44,53 @@ def getGases(gasmapARRAY, xnuke, ynuke, apertureradius, s, overspill, sigma_cuto
         #isolate the borders of the (too big) aperture
         #border_aps = []
         ress = []
-        for ix in (h_clip, c_clip, d_clip):
-            ia = ix.copy() #the copy of the aperture that will 0 the middle and apply a correction to the borders
-            #making the non-border parts 0
-            ia[1:-1,1:-1]=0
-            #correction the border
-            ia*=overspill
-            #borders are determined
-            #onto getting the aperture w/o border
-            ix[0,:]=0
-            ix[-1,:]=0
-            ix[:,-1]=0
-            ix[:,0]=0
-            #borders in ix are zeroed out, borders in ia are corrected, we add
-            res = ia + ix
-            ress.append(res)
-        ### use RESISTANT MEAN ###
-        #x_sum = ( ress )
         means = []
         sigs = []
         nrej = []
         apsize = s
-        for i in range(3): 
-            onemean, onesigma, numrej = resistant_mean( ress[i], sigma_cutoff )
-            means.append(onemean)
-            sigs.append(onesigma)
-            nrej.append(numrej)
+        clips = (h_clip, c_clip, d_clip)
+        for i in range(3):
+            ix = clips[i].copy()
+            ia = clips[i].copy() #the copy of the aperture that will 0 the middle and apply a correction to the borders
+            bordermask = np.ones_like( ia ).astype(bool) #True on borders, false on core
+            bordermask[1:-1,1:-1] = False
+            #making the non-border parts 0
+            ia[np.logical_not( bordermask )] = 0.
+            #correction the border
+            #borders are determined
+            #onto getting the aperture w/o border
+            #ix[0,:]=0.
+            #ix[-1,:]=0.
+            #ix[:,-1]=0.
+            #ix[:,0]=0.
+            ix[bordermask] = 0.
+            #borders in ix are zeroed out, borders in ia are corrected, we add
+            #mask for ia to avoid using zeros in the mean
+            coremean, coresigma, corerej = resistant_mean( ix[np.logical_not( bordermask )], sigma_cutoff )
+            bordmean, bordsigma, bordrej = resistant_mean( ia[ bordermask ], sigma_cutoff )
+            bordmean *= overspill
+            bordsigma *= overspill
+            # total mean
+            tot_mean = coremean + bordmean
+            # total standard deviation
+            tot_sig = np.sqrt(  coresigma**2. + bordsigma**2.  )
+            # number of rejected pixels, stored as a complex number
+            rejects = complex(corerej, bordrej)
+            #
+            means.append(tot_mean)
+            sigs.append(tot_sig)
+            nrej.append(rejects)
         #hmean, cmean, dmean = means
-        hsig, csig, dsig = sigs
         hrej, crej, drej = nrej
         # turn means into sums by using aperture size and number of rejected pixels
         sums = []
-        for i in range(3): sums.append( means[i] * apsize**2  )
+        nsig = []
+        for i in range(3):
+            sums.append( means[i] * apsize**2.  )
+            nsig.append( sigs[i] * apsize**2.  )
         hsum, csum, dsum = sums
+        hsig, csig, dsig = nsig
+        #
         hpack = (hsum, hsig, hrej)
         cpack = (csum, csig, crej)
         dpack = (dsum, dsig, drej)
@@ -80,9 +99,9 @@ def getGases(gasmapARRAY, xnuke, ynuke, apertureradius, s, overspill, sigma_cuto
         #c_sum = np.nansum(ress[1])
         #d_sum = np.nansum(ress[2])
     else:
-        hpack = (0.0, 0.0, 0)
-        cpack = (0.0, 0.0, 0)
-        dpack = (0.0, 0.0, 0)
+        hpack = (0.0, 0.0, complex(0, 0))
+        cpack = (0.0, 0.0, complex(0, 0))
+        dpack = (0.0, 0.0, complex(0, 0))
     return hpack, cpack, dpack, clipd
 def sortDires(row):     #key for sorting directories by time data were taken
     cal = fits.open(row+"/dal_001.fit")
@@ -111,7 +130,10 @@ if __name__ == '__main__':
     curve_filename = 'gascurves_x6.txt'
     curve_filepath = '/home/antojr/stash/datatxt/'
     header_note = '424800m aperture, no corrections, interpolated aperture,'+\
-        'uses v8 gasmaps, made by crank_lightcurves, resisting_mean, more data'
+        'uses v8 gasmaps, made by crank_lightcurves, resisting_mean, more data'+\
+        'now doing 2 res means, one for core and one for interpolated border, will add results etc'+\
+        '# rejected pixels now stored as core, border rejects'
+    #sta, sto = (250, 270)
     sta, sto = (0, 1321)
     prog_counter=1
     with open(curve_filepath + curve_filename,"w") as fil:
@@ -125,15 +147,17 @@ if __name__ == '__main__':
             #getting it all together for the data array
             masterMap.append(( h2o[0],co2[0],dus[0],h2o[1],co2[1],dus[1],h2o[2],co2[2],dus[2],int(clip_flag) ))
             fil.write(f"{a['julian date'][i]} {h2o[0]} {co2[0]} {dus[0]} " +\
-                f"{h2o[1]} {co2[1]} {dus[1]} {int(h2o[2])} {int(co2[2])} {int(dus[2])} {int(clip_flag)}\n")
+                f"{h2o[1]} {co2[1]} {dus[1]} {int( h2o[2].real )} {int( h2o[2].imag )} " + \
+                f"{int( co2[2].real )} {int( co2[2].imag )} {int( dus[2].real )} " + \
+                f"{int( dus[2].imag )} {int( clip_flag )}\n")
             if (i-sta)/(sto-sta) >= prog_counter * 0.1 :
                 print(f'{(i-sta)/(sto-sta)*100.:.3f}% complete...')
                 prog_counter+=1
             pass
         print('.txt file produced.')
     gastype = np.dtype([ ('h2o','f8'),('co2','f8'),('dust','f8'), \
-            ('h error','f8'),('c error','f8'),('d error','f8'), ('num hrej','i4'),('num crej','i4'),\
-            ('num drej','i4'), ('clip flag','i4') ])
+            ('h error','f8'),('c error','f8'),('d error','f8'), ('num hrej','c8'),('num crej','c8'),\
+            ('num drej','c8'), ('clip flag','i4') ])
     gascurves = np.array(masterMap,dtype=gastype)
     np.save('results_code/gascurves_x6.npy', gascurves)
     print('.npy array saved.')
