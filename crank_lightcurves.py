@@ -47,7 +47,9 @@ def getGases(gasmapARRAY, xnuke, ynuke, apertureradius, s, overspill, sigma_cuto
         means = []
         sigs = []
         nrej = []
-        apsize = s
+        apsize = int(apertureradius*2+1)
+        n_core = (apsize - 2) ** 2
+        n_bord = 4*apsize - 4
         clips = (h_clip, c_clip, d_clip)
         for i in range(3):
             ix = clips[i].copy()
@@ -68,28 +70,33 @@ def getGases(gasmapARRAY, xnuke, ynuke, apertureradius, s, overspill, sigma_cuto
             #mask for ia to avoid using zeros in the mean
             coremean, coresigma, corerej = resistant_mean( ix[np.logical_not( bordermask )], sigma_cutoff )
             bordmean, bordsigma, bordrej = resistant_mean( ia[ bordermask ], sigma_cutoff )
-            bordmean *= overspill
-            bordsigma *= overspill
+            #bordmean *= overspill
+            #bordsigma *= overspill
+            coresum = coremean * n_core
+            bordsum = bordmean * n_bord
+            bordsum *= overspill
+            coresigma *= n_core
+            bordsigma *= (n_bord * overspill)
             # total mean
-            tot_mean = coremean + bordmean
+            tot_sum = coresum + bordsum
             # total standard deviation
             tot_sig = np.sqrt(  coresigma**2. + bordsigma**2.  )
             # number of rejected pixels, stored as a complex number
             rejects = complex(corerej, bordrej)
             #
-            means.append(tot_mean)
+            means.append(tot_sum)
             sigs.append(tot_sig)
             nrej.append(rejects)
         #hmean, cmean, dmean = means
         hrej, crej, drej = nrej
         # turn means into sums by using aperture size and number of rejected pixels
-        sums = []
-        nsig = []
-        for i in range(3):
-            sums.append( means[i] * apsize**2.  )
-            nsig.append( sigs[i] * apsize**2.  )
-        hsum, csum, dsum = sums
-        hsig, csig, dsig = nsig
+        #sums = []
+        #nsig = []
+        #for i in range(3):
+        #    sums.append( means[i] * apsize**2.  )
+        #    nsig.append( sigs[i] * apsize**2.  )
+        hsum, csum, dsum = means
+        hsig, csig, dsig = sigs
         #
         hpack = (hsum, hsig, hrej)
         cpack = (csum, csig, crej)
@@ -110,12 +117,6 @@ def sortDires(row):     #key for sorting directories by time data were taken
     return tym
 #
 a = np.load('a_cometmeta.npy')
-#cata = []
-#dire = []
-#for paths, dirs, fils in os.walk("/chiron4/antojr/calibrated_ir/"):
-#    dire.append(paths)
-#    cata.append(fils)
-#dire = dire[1:] #getting rid of the first entry, the root directory
 if __name__ == '__main__':
     xlocs, ylocs = a['x-nucleus'].astype(int) , a['y-nucleus'].astype(int)
     dire = a['directory path'].copy()
@@ -127,12 +128,12 @@ if __name__ == '__main__':
     errs2 = a_radi - a_radi_floor
     #empty list to fill with lightcurve data
     masterMap = []
-    curve_filename = 'gascurves_x6.txt'
+    curve_filename = 'gascurves_x7.txt'
     curve_filepath = '/home/antojr/stash/datatxt/'
     header_note = '424800m aperture, no corrections, interpolated aperture,'+\
         'uses v8 gasmaps, made by crank_lightcurves, resisting_mean, more data'+\
         'now doing 2 res means, one for core and one for interpolated border, will add results etc'+\
-        '# rejected pixels now stored as core, border rejects'
+        '# rejected pixels now stored as core, border rejects, turning means into sums separate now'
     #sta, sto = (250, 270)
     sta, sto = (0, 1321)
     prog_counter=1
@@ -159,7 +160,7 @@ if __name__ == '__main__':
             ('h error','f8'),('c error','f8'),('d error','f8'), ('num hrej','c8'),('num crej','c8'),\
             ('num drej','c8'), ('clip flag','i4') ])
     gascurves = np.array(masterMap,dtype=gastype)
-    np.save('results_code/gascurves_x6.npy', gascurves)
+    np.save('results_code/gascurves_x7.npy', gascurves)
     print('.npy array saved.')
 else:
     pass

@@ -7,8 +7,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from PyAstronomy.pyasl import foldAt
-from playingwithdata import a
+#from playingwithdata import a
+from distance_corrections_gascurves import masking
 
+a=np.load('a_cometmeta.npy')
 def normalize(data):
     return (data - np.nanmin(data)) / (np.nanmax(data) - np.nanmin(data))
 def boxcar_smooth(data, result_array):
