@@ -8,6 +8,36 @@ import os
 import numpy as np
 from astropy.io import fits
 
+class scanner:
+    def __init__(self):
+        return
+
+    def walker(self,topdir):
+        #f
+        p = []
+        d = []
+        f = []
+        for a,b,c in os.walk(topdir):
+            p.append(a)
+            #print(c)
+            #print('\n\n\n')
+            f.append( [ fi for fi in c if fi.endswith(".fit") ] )
+            d.append(b)
+        #ind the fils
+        self.scanpaths = p[1:]
+        self.scanfiles = f[1:]
+        return
+
+    def scanning(self,savehere):
+        for j in range(len( self.scanpaths )):
+            for i in range(len(self.scanfiles[j])):
+                scanscan( self.scanpaths[j] +'/' + self.scanfiles[j][i], savehere=savehere)
+                print(j,i)
+        return
+
+    def blank(self):
+        return
+
 def scanscan(filepath,savehere='/alcyone1/antojr/downloading_h2/raw/'):
     #will take a filepath, open the fits file there
     #record the doy, exposure id and save the file in the appropriate place
@@ -18,9 +48,9 @@ def scanscan(filepath,savehere='/alcyone1/antojr/downloading_h2/raw/'):
     doy = filepath[37:40]  
     hour = int( float( filen[8:10] ))
     expid = mhdr['expid']    #string
-    savedir = f'{doy}_{expid}_{hour}/'
-    savedir_1 = f'{doy}_{expid}_{(hour+1)%24}/'
-    savedir_2 = f'{doy}_{expid}_{(hour-1)%24}/'
+    savedir = f'{doy}_{expid}_{hour:0>2}/'
+    savedir_1 = f'{doy}_{expid}_{(hour+1)%24:0>2}/'
+    savedir_2 = f'{doy}_{expid}_{(hour-1)%24:0>2}/'
 
     if not os.path.exists( savehere+savedir ):
         #check if hour-1 or hour+1 already exists
@@ -36,7 +66,18 @@ def scanscan(filepath,savehere='/alcyone1/antojr/downloading_h2/raw/'):
     #swit.writeto(savehere+savedir+filen)
     return
 
-search_dir = '/alcyone1/antojr/downloading_h2/2010/'
+
+if __name__ == '__main__':
+    search_dir = '/alcyone1/antojr/downloading_h2/2010/'
+    save_dir = '/alcyone1/antojr/downloading_h2/'
+    s1 = scanner()
+    s1.walker(search_dir)
+    s1.scanning(save_dir)
+    
+else:
+    pass
+
+"""
 paths = []
 dirs = []
 fils = []
@@ -64,6 +105,4 @@ for j in range(len(paths)):
         print(j,i)
 #print(len(paths))
 #print(len(fils))
-
-
-
+"""
