@@ -41,11 +41,10 @@ class scanner:
 def scanscan(filepath,savehere='/alcyone1/antojr/downloading_h2/raw/'):
     #will take a filepath, open the fits file there
     #record the doy, exposure id and save the file in the appropriate place
-
     frame = fits.open(filepath)
     mhdr = frame[0].header
     filen = mhdr['filename'].lower()
-    doy = filepath[37:40]  
+    doy = int ( float( filepath[37:40]  ))
     hour = int( float( filen[8:10] ))
     expid = mhdr['expid']    #string
     savedir = f'{doy}_{expid}_{hour:0>2}/'
@@ -54,9 +53,9 @@ def scanscan(filepath,savehere='/alcyone1/antojr/downloading_h2/raw/'):
 
     if not os.path.exists( savehere+savedir ):
         #check if hour-1 or hour+1 already exists
-        if os.path.exists( savehere + savedir_1): #they exist:
+        if os.path.exists( savehere + savedir_1) and hour!=23: #they exist:
             savedir = savedir_1
-        elif os.path.exists( savehere + savedir_2 ):
+        elif os.path.exists( savehere + savedir_2 ) and hour!=00:
             savedir = savedir_2
         else:
             os.mkdir(savehere+savedir)
@@ -69,7 +68,7 @@ def scanscan(filepath,savehere='/alcyone1/antojr/downloading_h2/raw/'):
 
 if __name__ == '__main__':
     search_dir = '/alcyone1/antojr/downloading_h2/2010/'
-    save_dir = '/alcyone1/antojr/downloading_h2/'
+    save_dir = '/alcyone1/antojr/downloading_h2/rap/'
     s1 = scanner()
     s1.walker(search_dir)
     s1.scanning(save_dir)
