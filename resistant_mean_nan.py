@@ -55,5 +55,8 @@ def resistant_mean(data, cut):
 #    print("test worked")
 #else:
 #    print("uhhh")
-pass
+if __name__ == '__main__':
+    pass
+else:
+    pass
 
