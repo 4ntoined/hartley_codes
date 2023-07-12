@@ -155,12 +155,13 @@ def measure_gas(spect, waves, spectrum_scani=0, xy=(-99,-99), demo=False, resist
         gasdx = wavo[ inta+1 ] - wavo[ inta ]
         gas = gassum * gasdx
         two.append(gas)
-    np.savez('/home/antojr/codespace/continuum.npz', hwaves=saving_more[0], hcon=saving_more[1], cwaves=saving_more[2], ccon=saving_more[3])
+    #np.savez('/home/antojr/codespace/continuum.npz', hwaves=saving_more[0], hcon=saving_more[1], cwaves=saving_more[2], ccon=saving_more[3])
     #############  dust  ###############
     wave_d = waves[duss:dusl+1]
     #dus = np.trapz( spect[duss:dusl+1], x=wave_d)
-    dassum = np.sum(spect[duss:dusl+1] )
+    dussum = np.sum(spect[duss:dusl+1] )
     dusdx = wave_d[1] - wave_d[0]
+    dus = dussum * dusdx
     ########## still plotting #################
     if demo:
         concern = np.nanmin( np.argwhere(waves > 2.2) )
@@ -204,7 +205,7 @@ def make_gasmaps(pathToScanDirectory,sigma_cut = 2.5,saveName='cube_gasmaps_wild
 #what directory to look for cubes?
 d1 = 1.80
 d2 = 2.20
-h1 = 2.59
+h1 = 2.62
 h2 = 2.77
 c1 = 4.17
 c2 = 4.31
@@ -213,20 +214,22 @@ sigma = 2.5
 #directs[:,0] = directs[:,0].astype(int)    #converting indeces from str to int
 #
 if __name__ == "__main__":
+    scanname = np.loadtxt('/home/antojr/stash/datatxt/filtered_list.txt',dtype=str,unpack=True,usecols=(1))
+    directos = [ '/alcyone1/antojr/cali/'+i for i in scanname]
     all_some = input("All-> yes, selection -> [index range]: ")
     if all_some == 'y' or all_some == 'Y' or all_some == 'yes' \
     or all_some == 'Yes' or all_some == '1' or all_some == 'True' \
     or all_some == 'true' or all_some == 'all' or all_some == 'All':
         #setting up start and stop to produce all gas maps
-        sta,sto = 0,1321
+        sta,sto = 0,1320
     else:
         #setting up start and stop to match indices given
         ab,bb = all_some.split()
-        sta,sto = int(ab), int(bb)+1
+        sta,sto = int(ab), int(bb)
     #regardless of setup, w start/stop defined, procedure is same
     prog_counter = 1
     for i in range(sta,sto):
-        make_gasmaps( a['directory path'][i] , inspec='cube_smooth_v7.fit', inwave='cube_wave_v7.fit', saveName='cube_gasmaps_v7.fit' )
+        make_gasmaps( directos[i] , inspec='cube_smooth_w1.fit', inwave='cube_wave_w1.fit', saveName='cube_gasmaps_w1.fit' )
         if (i-sta)/(sto-sta) >= prog_counter * 0.1 :
             print(f'{(i-sta)/(sto-sta)*100.:.3f}% complete...')
             prog_counter+=1
