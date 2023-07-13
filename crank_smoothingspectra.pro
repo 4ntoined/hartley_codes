@@ -1,10 +1,16 @@
 @spectral_mean_cube_v2
-pro smoothem,sig_cut,box_size
+;Antoine
+;This will smooth all the calibrated ir H2 data cubes by spectra
+;Yah
+
+pro smoothem
+;,sig_cut,box_size
 ;cube has dimensions [256,32,512]
 ;each pixel [a,b,*] has a spectrum that needs to be smoothed along that direction
-
-;this run Im smoothing all but a few DOYs
-fils = file_search('/chiron4/antojr/calibrated_ir/*')
+;fils = file_search('/chiron4/antojr/calibrated_ir/*')
+fils = file_search('/alcyone1/antojr/cali/*')
+sig_cut = 2.5
+box_size = 3 
 ;filsA = file_search('/chiron4/antojr/calibrated_ir/298*')
 ;fils = file_search('/chiron4/antojr/calibrated_ir/319.4100023')
 ;filsb = file_search('/chiron4/antojr/calibrated_ir/299*')

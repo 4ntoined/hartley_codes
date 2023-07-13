@@ -2,7 +2,8 @@
 
 pro spacesmooth_crank
 
-fils = file_search('/chiron4/antojr/calibrated_ir/*')
+fils = file_search('/alcyone1/antojr/cali/*')
+;fils = file_search('/chiron4/antojr/calibrated_ir/*')
 ;filA = file_search('/chiron4/antojr/calibrated_ir/309*')
 ;filB = file_search('/chiron4/antojr/calibrated_ir/310*')
 ;filC = file_search('/chiron4/antojr/calibrated_ir/311*')
